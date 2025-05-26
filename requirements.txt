@@ -1,5 +1,15 @@
+# Web Framework & Server
 fastapi
-uvicorn
-httpx
+uvicorn[standard]
+
+# Data Validation & Settings
 pydantic
 pydantic-settings
+
+# HTTP Client 
+httpx
+
+# --- IR & NLP ---
+
+# NLP 
+nltk
