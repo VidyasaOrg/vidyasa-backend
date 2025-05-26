@@ -9,7 +9,10 @@ pydantic-settings
 # HTTP Client 
 httpx
 
-# --- IR & NLP ---
+# Inforation Retrieval
 
-# NLP 
+# Query Expansion Agent
+openai
+
+# Other
 nltk
