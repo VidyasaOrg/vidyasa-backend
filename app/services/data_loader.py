@@ -5,7 +5,7 @@ import math
 
 from models.ir_data import IRData
 from models.query import Query
-from models.qrel import QrelsDict
+from models.qrels import Qrels
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATABASE_PATH = os.path.join(BASE_PATH, "data", "preprocessed")
@@ -18,7 +18,7 @@ class DataLoader:
     """
     Usage:
     ```
-    from app.services.data_loader import get_qrels, get_queries, get_irdata
+    from services.data_loader import get_qrels, get_queries, get_irdata
     
     qrels: QrelsDict = get_qrels()
     queries: list[Query] = get_queries()
@@ -44,10 +44,10 @@ class DataLoader:
             return pickle.load(pickle_file)
 
     @classmethod
-    def get_qrels(cls) -> QrelsDict:
+    def get_qrels(cls) -> Qrels:
         if cls._qrels_data is None:
             qrels_data_temp = cls.json_load(QRELS_FILENAME)
-            cls._qrels_data = QrelsDict.from_json(qrels_data_temp)
+            cls._qrels_data = Qrels.from_json(qrels_data_temp)
         return cls._qrels_data
 
     @classmethod
