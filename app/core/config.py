@@ -4,6 +4,8 @@ import os
 
 class Settings(BaseSettings):
     APP_NAME: str = "Vidyasa"
+    APP_VERSION: str = "0.1.0"
+    APP_DESCRIPTION: str = "Vidyasa Backend API Service"
     
     # CORS setting
     CORS_ORIGINS: list[str] = [
