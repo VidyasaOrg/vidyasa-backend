@@ -13,7 +13,7 @@
             "args": [
                 "app.main:app",
                 "--reload",
-                "--port=5000"
+                "--port=8000"
             ],
             "jinja": true,
             "autoStartBrowser": true
