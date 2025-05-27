@@ -3,9 +3,9 @@ import json
 import pickle
 import math
 
-from models.ir_data import IRData
-from models.query import Query
-from models.qrels import Qrels
+from app.models.ir_data import IRData
+from app.models.query import Query
+from app.models.qrels import Qrels
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATABASE_PATH = os.path.join(BASE_PATH, "data", "preprocessed")
