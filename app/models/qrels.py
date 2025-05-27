@@ -3,7 +3,7 @@ from typing import List
 
 
 @dataclass
-class QrelsDict:
+class Qrels:
     """
     Maps query_id -> List[doc_id]
     
@@ -34,10 +34,10 @@ class QrelsDict:
         return doc_id in self.data.get(query_id, [])
     
     @staticmethod
-    def from_json(data: dict) -> 'QrelsDict':
-        """Create a QrelsDict from a JSON-like dictionary."""
-        qrels_dict = QrelsDict()
+    def from_json(data: dict) -> 'Qrels':
+        """Create a Qrels from a JSON-like dictionary."""
+        qrels = Qrels()
         for query_id, doc_ids in data.items():
             for doc_id in doc_ids:
-                qrels_dict.add_qrel(int(query_id), int(doc_id))
-        return qrels_dict
+                qrels.add_qrel(int(query_id), int(doc_id))
+        return qrels
