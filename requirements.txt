@@ -6,13 +6,12 @@ uvicorn[standard]
 pydantic
 pydantic-settings
 
-# HTTP Client 
+# HTTP Client
 httpx
-
-# Inforation Retrieval
 
 # Query Expansion Agent
 openai
 
-# Other
+# NLP & Utilities
 nltk
+python-multipart
