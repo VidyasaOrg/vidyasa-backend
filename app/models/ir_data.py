@@ -92,7 +92,7 @@ class IRData:
             ],
             "idf": {"information": 1.0, "retrieval": 1.0},
             "inverted_index_by_term": {"information": [0], "retrieval": [0]},
-            "inverted_index_by_doc": {0: {"information": [0], "retrieval": [3]}}
+            "inverted_index_by_doc": {0: {"information": [0,1], "retrieval": [3]}}
         }
     ```
     """
@@ -115,20 +115,7 @@ class IRData:
         """
         documents = []
         for doc in data.get("docs", []):
-            # Only required fields are passed; others use default values
-            documents.append(
-                Document(
-                    id=doc.get("id"),
-                    title=doc.get("title"),
-                    author=doc.get("author"),
-                    content=doc.get("content"),
-                    tokens=doc.get("tokenized_content", []),
-                    raw_tf=doc.get("raw_tf", {}),
-                    log_tf=doc.get("log_tf", {}),
-                    aug_tf=doc.get("aug_tf", {}),
-                    binary_tf=doc.get("binary_tf", {}),
-                )
-            )
+            documents.append(Document.from_json(doc))
         return IRData(
             documents=documents,
             idf=data.get("idf", {}),
