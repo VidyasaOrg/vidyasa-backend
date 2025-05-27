@@ -55,6 +55,7 @@ rm data/IRCollection.zip && \
 preprocess the dataset
 ```powershell
 python scripts/preprocess.py
+python scripts/project_setup.py
 ```
 
 ### Running the Application
