@@ -50,4 +50,11 @@ async def root():
 async def health_check():
     return {"status": "healthy"}
 
+# Include routers
+from app.routers import query, query_batch, inverted_file, qrels, document
 
+app.include_router(query.router)
+app.include_router(query_batch.router)
+app.include_router(inverted_file.router)
+app.include_router(qrels.router)
+app.include_router(document.router)
