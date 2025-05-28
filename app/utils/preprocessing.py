@@ -22,11 +22,17 @@ def tokenize_words(text: str, remove_punctuation: bool = True) -> list[str]:
 
     return tokens
 
-def preprocess_text(tokens: list[str]) -> list[str]:
+def preprocess_text(tokens: list[str], is_stem: bool = True, remove_stop_words: bool = True) -> list[str]:
     """
     Do stemming on an input array of tokens, returns an array of stemmed tokens.
     """
-
-    processed_tokens = [stemmer.stem(word) for word in tokens if word not in stop_words]
+    if is_stem & remove_stop_words:
+        processed_tokens = [stemmer.stem(word) for word in tokens if word not in stop_words]
+    elif is_stem:
+        processed_tokens = [stemmer.stem(word) for word in tokens]
+    elif remove_stop_words:
+        processed_tokens = [word for word in tokens if word not in stop_words]
+    else:
+        processed_tokens = tokens
 
     return processed_tokens
