@@ -9,6 +9,5 @@ async def search_batch_queries(
 ):
     # TODO: Implementasi ini, kalau (bebas mau nama fungsi, input fungsi diubah kalau belum sesuai)
     # @Breezy-DR
-    
+    # @satrianababan disini nanti ada similarity coefficient, original map, expanded map
     raise HTTPException(status_code=400, detail="not implemented yet")
-
