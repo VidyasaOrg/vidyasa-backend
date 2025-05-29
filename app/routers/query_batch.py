@@ -36,11 +36,13 @@ async def search_batch_queries(
         irdata = get_irdata()
         docs = irdata
 
+        # Retrieve responses from each query
         responses = []
         for idx, query_entry in enumerate(queries_data):
             raw_query = query_entry["query"]
             query_obj = Query(id=idx, content=raw_query)
 
+            # If the index query is in the qrels data, it is relevant
             relevant_docs_set = set(qrels.get_relevant_docs(idx)) if idx in qrels.data else set()
 
             # ORIGINAL QUERY
@@ -67,7 +69,7 @@ async def search_batch_queries(
                 expanded_map_score=expanded_map,
                 expanded_query_weights=expanded_query_weights
             )
-            responses.append(response.dict())
+            responses.append(response.model_dump())
 
         # Save to temp file to send as FileResponse
         temp = tempfile.NamedTemporaryFile(delete=False, suffix=".json", mode="w", encoding="utf-8")
