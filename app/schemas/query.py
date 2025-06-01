@@ -49,19 +49,19 @@ class QueryRequest(BaseModel):
     term_frequency_method: Optional[TermFrequencyMethod] = TermFrequencyMethod.RAW
     expansion_terms_count: Optional[Union[int, Literal["all"]]] = "all"
     
-class DocumentSimiliarityScore(BaseModel):
+class DocumentSimilarityScore(BaseModel):
     """Document with similarity score."""
     doc_id: int
-    similiarity_score: float
+    similarity_score: float
 
 class QueryResponse(BaseModel):
     """
     Response model for a query operation.
     
     Attributes:
-        original_ranking (List[DocumentSimiliarityScore]): Ranking of documents for the original query.
-        expanded_ranking (List[DocumentSimiliarityScore]): Ranking of documents for the expanded query.
-        
+        original_ranking (List[DocumentSimilarityScore]): Ranking of documents for the original query.
+        expanded_ranking (List[DocumentSimilarityScore]): Ranking of documents for the expanded query.
+
         original_query (str): The original query text.
         original_map_score (float): Mean Average Precision score for the original query.
         original_query_weights (Dict[str, float]): Term weights for the original query.
@@ -74,12 +74,12 @@ class QueryResponse(BaseModel):
     ```
     {
         "original_ranking": [
-            {"doc_id": 1, "similiarity_score": 0.85},
-            {"doc_id": 2, "similiarity_score": 0.75}
+            {"doc_id": 1, "similarity_score": 0.85},
+            {"doc_id": 2, "similarity_score": 0.75}
         ],
         "expanded_ranking": [
-            {"doc_id": 1, "similiarity_score": 0.90},
-            {"doc_id": 2, "similiarity_score": 0.80}
+            {"doc_id": 1, "similarity_score": 0.90},
+            {"doc_id": 2, "similarity_score": 0.80}
         ],
         "original_query": "information retrieval",
         "original_map_score": 0.78,
@@ -90,8 +90,8 @@ class QueryResponse(BaseModel):
     }
     ```
     """
-    original_ranking: List[DocumentSimiliarityScore]
-    expanded_ranking: List[DocumentSimiliarityScore]
+    original_ranking: List[DocumentSimilarityScore]
+    expanded_ranking: List[DocumentSimilarityScore]
     
     original_query: str
     original_map_score: float

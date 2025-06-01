@@ -4,17 +4,70 @@ import tempfile
 import os
 import json
 
-from app.services.data_loader import get_qrels, get_queries, get_irdata
-from app.schemas.query import QueryResponse, DocumentSimiliarityScore
-from app.models.qrels import Qrels
-from app.models.query import Query
+from app.services import get_qrels, get_queries, get_irdata
+from app.schemas import QueryResponse, DocumentSimilarityScore, TermFrequencyMethod
+from app.models import Qrels
+from app.models import Query
 
 router = APIRouter(prefix="/query_batch", tags=["batch_query"])
+
+#######################
+# REMOVE LATER: Dummy functions to be replaced with actual implementations
+
+from app.models import Document, IRData
+def dummy_similarity_ranking(query: Query, docs: IRData) -> list[DocumentSimilarityScore]:
+    # Dummy implementation: return 10 documents sorted by similarity score
+    return [DocumentSimilarityScore(doc_id=doc.id, similarity_score=0.5) for doc in docs.documents][:10]
+
+def dummy_query_weights(query: str) -> dict:
+    # Dummy implementation: return a fixed weight for each term
+    return {term: 1.0 for term in query.split()}
+
+def dummy_expand_query(query: str) -> str:
+    # Dummy implementation: return the original query with "dummy" appended
+    return f"{query} dummy"
+
+def dummy_map_score(ranking_ids: list[int], relevant_docs_set: set[int]) -> float:
+    # Dummy implementation: return a fixed MAP score
+    if not ranking_ids or not relevant_docs_set:
+        return 0.0
+    return len(set(ranking_ids) & relevant_docs_set) / len(relevant_docs_set)
+
+#########################
 
 @router.post("/", response_class=FileResponse)
 async def search_batch_queries(
     file: UploadFile = File(..., description="File containing queries (one per line or JSON format)"),
+    is_stemming: bool = Form(False, description="Apply stemming to queries"),
+    is_stop_words_removal: bool = Form(False, description="Remove stop words from queries"),
+    term_frequency_method: TermFrequencyMethod = Form(TermFrequencyMethod.RAW, description="Term frequency method to use"),
+    expansion_terms_count: int = Form("all", description="Number of terms to expand the query with (0 for no expansion, 'all' for all terms)")
 ):
+    """
+    Process a batch of queries from a file and return the results as a JSON file.
+    The file can contain queries in JSON format or as newline-separated raw queries.
+    Each query will be processed to retrieve original and expanded rankings, MAP scores, and term weights.
+    
+    Example of file content:
+    ```
+    [
+        {"query": "information retrieval"},
+        {"query": "database systems"},
+        {"query": "machine learning"}
+    ]
+    ```
+    
+    Example request body:
+    ```json
+    {
+        "file": "<file with queries>",
+        "is_stemming": true,
+        "is_stop_words_removal": false,
+        "term_frequency_method": "log",
+        "expansion_terms_count": 5
+    }
+    ```
+    """
     # TODO: Implementasi ini, kalau (bebas mau nama fungsi, input fungsi diubah kalau belum sesuai)
     # @Breezy-DR
     # @satrianababan disini nanti ada similarity coefficient, original map, expanded map
@@ -80,4 +133,3 @@ async def search_batch_queries(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
-raise HTTPException(status_code=400, detail="not implemented yet")

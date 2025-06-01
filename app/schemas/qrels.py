@@ -10,4 +10,4 @@ class QrelsResponse(BaseModel):
         relevant_docs (List[int]): List of relevant document IDs
     """
     query_id: int
-    relevant_docs: List[int]
+    relevant_docs: List[int] = []

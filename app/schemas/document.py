@@ -24,5 +24,5 @@ class DocumentBatchResponse(BaseModel):
         documents (List[DocumentResponse]): List of retrieved documents
         not_found (List[int]): List of document IDs that were not found
     """
-    documents: List[DocumentResponse]
+    documents: List[DocumentResponse] = []
     not_found: List[int] = []

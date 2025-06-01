@@ -4,11 +4,11 @@ from app.services.data_loader import get_qrels
 from app.models.qrels import Qrels
 from app.schemas.qrels import QrelsResponse
 
-router = APIRouter(prefix="/qrels", tags=["relevance_judgments"])
+router = APIRouter(prefix="/qrels", tags=["relevant_docs"])
 
 
 @router.get("/{query_id}", response_model=QrelsResponse)
-async def get_relevance_judgments(
+async def get_relevant_docs(
     query_id: int = Path(..., description="Query ID to retrieve relevance judgments for")
 ):
     """

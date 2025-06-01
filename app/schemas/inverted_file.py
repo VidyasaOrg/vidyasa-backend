@@ -19,7 +19,7 @@ class InvertedFileByDocIdResponse(BaseModel):
     }
     """
     doc_id: int
-    term_postings: Dict[str, List[int]]
+    term_postings: Dict[str, List[int]] = {}
 
 class InvertedFileByTermResponse(BaseModel):
     """
@@ -36,4 +36,4 @@ class InvertedFileByTermResponse(BaseModel):
     }
     """
     term: str
-    docs: List[int]
+    docs: List[int] = []
