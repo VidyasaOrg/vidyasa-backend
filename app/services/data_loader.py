@@ -17,8 +17,7 @@ QUERIES_FILENAME = os.path.join(DATABASE_PATH, "queries.json")
 class DataLoader:
     """
     Usage:
-    ```
-    from services.data_loader import get_qrels, get_queries, get_irdata
+    ```python
     
     qrels: QrelsDict = get_qrels()
     queries: list[Query] = get_queries()
