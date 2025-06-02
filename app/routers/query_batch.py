@@ -75,15 +75,8 @@ async def search_batch_queries(
 
     try:
         contents = await file.read()
-        try:
-            queries_data = json.loads(contents)
-            if isinstance(queries_data, dict):  # single query
-                queries_data = [queries_data]
-            elif not isinstance(queries_data, list):
-                raise ValueError("Invalid JSON format")
-        except json.JSONDecodeError:
-            # fallback: treat as newline-separated raw queries
-            queries_data = [{"query": line.strip()} for line in contents.decode().splitlines() if line.strip()]
+
+        queries_data = [{"query": line.strip()} for line in contents.decode().splitlines() if line.strip()]
 
         qrels: Qrels = get_qrels()
         irdata = get_irdata()
