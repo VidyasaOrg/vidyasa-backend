@@ -1,5 +1,6 @@
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException
 from fastapi.responses import FileResponse
+from app.utils.preprocessing import tokenize_words, preprocess_text
 import tempfile
 import os
 import json
@@ -86,7 +87,11 @@ async def search_batch_queries(
         responses = []
         for idx, query_entry in enumerate(queries_data):
             raw_query = query_entry["query"]
-            query_obj = Query(id=idx, content=raw_query)
+            tokens = tokenize_words(raw_query)
+            processed_tokens = preprocess_text(tokens, is_stem=is_stemming, remove_stop_words=is_stop_words_removal)
+            processed_query = " ".join(processed_tokens)
+
+            query_obj = Query(id=idx, content=processed_query)
 
             # If the index query is in the qrels data, it is relevant
             relevant_docs_set = set(qrels.get_relevant_docs(idx)) if idx in qrels.data else set()
@@ -98,8 +103,15 @@ async def search_batch_queries(
             original_query_weights = dummy_query_weights(raw_query)
 
             # EXPANDED QUERY
-            expanded_query_text = dummy_expand_query(raw_query)
-            query_obj.content = expanded_query_text
+            expanded_query_text = dummy_expand_query(processed_query)
+
+            # Preprocess expanded query
+            expanded_tokens = tokenize_words(expanded_query_text)
+            expanded_processed_tokens = preprocess_text(expanded_tokens, is_stem=is_stemming,
+                                                        remove_stop_words=is_stop_words_removal)
+            expanded_processed_query = " ".join(expanded_processed_tokens)
+
+            query_obj.content = expanded_processed_query
             expanded_ranking_objs = dummy_similarity_ranking(query_obj, docs)
             expanded_ranking_ids = [doc.doc_id for doc in expanded_ranking_objs]
             expanded_map = dummy_map_score(expanded_ranking_ids, relevant_docs_set)
