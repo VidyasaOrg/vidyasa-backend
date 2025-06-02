@@ -69,6 +69,20 @@ async def search_batch_queries(
     }
     ```
     """
+    """
+        Args:
+            file: The uploaded file object (expected to be text-based) containing queries, one per line.
+            is_stemming (bool): Whether to apply stemming during preprocessing.
+            is_stop_words_removal (bool): Whether to remove stop words during preprocessing.
+            term_frequency_method,
+            expansion_terms_count
+        Returns:
+            FileResponse: A downloadable JSON file containing a list of responses for each query,
+                          including original and expanded query rankings, MAP scores, and term weights.
+
+        Raises:
+            HTTPException: If any error occurs during processing, returns HTTP 500 with error detail.
+        """
     # TODO: Implementasi ini, kalau (bebas mau nama fungsi, input fungsi diubah kalau belum sesuai)
     # @Breezy-DR
     # @satrianababan disini nanti ada similarity coefficient, original map, expanded map
