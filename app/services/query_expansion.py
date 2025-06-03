@@ -6,7 +6,8 @@ import google.generativeai as genai
 api_key = os.environ.get("GEMINI_API_KEY")
 if not api_key:
     raise RuntimeError("GEMINI_API_KEY environment variable not set")
-genai.configure(api_key=api_key)
+
+genai.configure(api_key=api_key) # type: ignore
 client = genai
 
 def expand_query_kb(original_query: str, relevant_documents: list[str]) -> dict:

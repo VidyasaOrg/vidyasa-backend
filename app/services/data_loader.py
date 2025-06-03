@@ -29,8 +29,13 @@ class DataLoader:
     ```
     """
     _qrels_data = None
+    _qrels_count = 0
+    
     _queries_data = None
+    _queries_count = 0
+    
     _cisi_data = None
+    _cisi_count = 0
 
     @classmethod
     def json_load(cls, file_path: str) -> dict:
@@ -47,6 +52,7 @@ class DataLoader:
         if cls._qrels_data is None:
             qrels_data_temp = cls.json_load(QRELS_FILENAME)
             cls._qrels_data = Qrels.from_json(qrels_data_temp)
+            cls._qrels_count = len(cls._qrels_data.data)
         return cls._qrels_data
 
     @classmethod

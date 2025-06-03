@@ -20,6 +20,24 @@ class TermFrequencyMethod(str, Enum):
     
     def __str__(self) :
         return self.value
+    
+class TermWeightingMethod(str, Enum):
+    """
+    Enumeration of term weighting methods used in information retrieval.
+    
+    This enum defines different methods for calculating term weights in document scoring:
+    - TF: Term Frequency
+    - IDF: Inverse Document Frequency
+    - TF_IDF: TF . IDF (product of term frequency and inverse document frequency)
+    - TF_IDF_NORM: Normalized TF . IDF (Cosine normalization of TF . IDF)
+    """
+    TF = "tf" 
+    IDF = "idf"
+    TF_IDF = "tf_idf"
+    TF_IDF_NORM = "tf_idf_norm"
+    
+    def __str__(self) :
+        return self.value
 
 class QueryRequest(BaseModel):
     """
@@ -27,10 +45,12 @@ class QueryRequest(BaseModel):
 
     Attributes:
         query (str): Query text.
-        is_stemming (Optional[bool]): Apply stemming. Default: False.
-        is_stop_words_removal (Optional[bool]): Remove stop words. Default: False.
-        term_frequency_method (Optional[TermFrequencyMethod]): Term frequency method. Default: RAW.
-        expansion_terms_count (Optional[Union[int, Literal["all"]]]): Number of expansion terms. Default: "all".
+        is_stemming (bool): Apply stemming. Default: False.
+        is_stop_words_removal (bool): Remove stop words. Default: False.
+        term_frequency_method (TermFrequencyMethod): Term frequency method. Default: RAW.
+        term_weighting_method (TermWeightingMethod): Term weighting method. Default: TF.
+        expansion_terms_count (Union[int, Literal["all"]]): Number of expansion terms. Default: "all".
+        is_queries_from_cisi (bool): Indicates if the query is from CISI queries. Default: False.
 
     Example in json:
     ```
@@ -39,19 +59,24 @@ class QueryRequest(BaseModel):
         "is_stemming": true,
         "is_stop_words_removal": false,
         "term_frequency_method": "log",
-        "expansion_terms_count": 5
+        "term_weighting_method": "tf_idf",
+        "expansion_terms_count": 5,
+        "is_queries_from_cisi": true
     }
     ```
     """
     query: str
-    is_stemming: Optional[bool] = False 
-    is_stop_words_removal: Optional[bool] = False 
-    term_frequency_method: Optional[TermFrequencyMethod] = TermFrequencyMethod.RAW
-    expansion_terms_count: Optional[Union[int, Literal["all"]]] = "all"
-    
+    is_stemming: bool = False 
+    is_stop_words_removal: bool = False 
+    term_frequency_method: TermFrequencyMethod = TermFrequencyMethod.RAW
+    term_weighting_method: TermWeightingMethod = TermWeightingMethod.TF
+    expansion_terms_count: Union[int, Literal["all"]] = "all"
+    is_queries_from_cisi: bool = False
+
 class DocumentSimilarityScore(BaseModel):
     """Document with similarity score."""
     doc_id: int
+    doc_title: str = ""
     similarity_score: float
 
 class QueryResponse(BaseModel):
@@ -94,9 +119,9 @@ class QueryResponse(BaseModel):
     expanded_ranking: List[DocumentSimilarityScore]
     
     original_query: str
-    original_map_score: float
+    original_map_score: float = 0.0
     original_query_weights: Dict[str, float] 
     
     expanded_query: str
-    expanded_map_score: float
+    expanded_map_score: float = 0.0
     expanded_query_weights: Dict[str, float]
