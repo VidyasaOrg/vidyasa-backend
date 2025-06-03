@@ -13,9 +13,9 @@ from app.models import Query
 
 from app.services.query_expansion import expand_query_kb
 
-from app.service.coefficient_calculator import CoefficientCalculator
-from app.service.map_calculator import MAPCalculator
-from app.service.inverted_index import InvertedIndex
+from app.services.coefficient_calculator import CoefficientCalculator
+from app.services.map_calculator import MAPCalculator
+from app.services.inverted_index import InvertedIndex
 
 router = APIRouter(prefix="/query", tags=["query"])
 

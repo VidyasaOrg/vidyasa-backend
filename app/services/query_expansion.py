@@ -2,6 +2,9 @@ import json
 import os
 import google.generativeai as genai
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Initialize Gemini
 api_key = os.environ.get("GEMINI_API_KEY")
 if not api_key:
