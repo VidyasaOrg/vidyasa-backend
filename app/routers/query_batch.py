@@ -10,6 +10,8 @@ from app.schemas import QueryResponse, DocumentSimilarityScore, TermFrequencyMet
 from app.models import Qrels
 from app.models import Query
 
+from app.services.query_expansion import expand_query_kb
+
 router = APIRouter(prefix="/query_batch", tags=["batch_query"])
 
 #######################
@@ -117,7 +119,9 @@ async def search_batch_queries(
             original_query_weights = dummy_query_weights(raw_query)
 
             # EXPANDED QUERY
-            expanded_query_text = dummy_expand_query(processed_query)
+            relevant_docs_texts = [doc.content for doc in docs.documents if doc.id in original_ranking_ids]
+            expansion_result = expand_query_kb(processed_query, relevant_docs_texts)
+            expanded_query_text = " ".join(expansion_result.keys())
 
             # Preprocess expanded query
             expanded_tokens = tokenize_words(expanded_query_text)
