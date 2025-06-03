@@ -7,12 +7,24 @@ import pickle
 from collections import defaultdict
 import nltk
 
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    print("nltk 'punkt' not found, downloading...")
-    nltk.download('punkt', quiet=True)
-    print("'nltk punkt' downloaded successfully.")
+# Enhanced NLTK resource checking
+def ensure_nltk_data():
+    """Ensure required NLTK data is downloaded"""
+    required_data = [
+        ('tokenizers/punkt', 'punkt'),
+        ('corpora/stopwords', 'stopwords'),
+    ]
+    
+    for data_path, data_name in required_data:
+        try:
+            nltk.data.find(data_path)
+        except LookupError:
+            print(f"NLTK '{data_name}' not found, downloading...")
+            nltk.download(data_name, quiet=True)
+            print(f"NLTK '{data_name}' downloaded successfully.")
+
+# Call this at module import
+ensure_nltk_data()
 
 # # Config
 # ## Editable

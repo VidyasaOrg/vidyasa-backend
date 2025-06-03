@@ -1,9 +1,26 @@
 import re
 import nltk
-nltk.download("stopwords")
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 import string
+
+# Enhanced NLTK resource checking
+def __ensure_nltk_data():
+    """Ensure required NLTK data is downloaded"""
+    required_data = [
+        ('corpora/stopwords', 'stopwords'),
+    ]
+    
+    for data_path, data_name in required_data:
+        try:
+            nltk.data.find(data_path)
+        except LookupError:
+            print(f"NLTK '{data_name}' not found, downloading...")
+            nltk.download(data_name, quiet=True)
+            print(f"NLTK '{data_name}' downloaded successfully.")
+
+# Call this at module import
+__ensure_nltk_data()
 
 stemmer = PorterStemmer()
 stop_words = set(stopwords.words("english"))
