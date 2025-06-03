@@ -172,3 +172,185 @@ class InvertedIndex:
             if doc_id in self.index[term]:
                 term_data = self.index[term][doc_id]
                 doc_terms.append({
+                    "term": term,
+                    "raw_tf": term_data['raw_tf'],
+                    "tf": term_data['tf'],
+                    "weight": term_data['weight'],
+                    "positions": term_data['positions']
+                })
+        
+        # Sort terms by weight descending
+        doc_terms.sort(key=lambda x: x["weight"], reverse=True)
+        doc_info["terms"] = doc_terms
+        doc_info["total_terms"] = len(doc_terms)
+        
+        return doc_info
+    
+    def search_terms(self, terms: List[str]) -> Dict:
+        """
+        Mencari dokumen yang mengandung terms tertentu
+        """
+        if not terms:
+            return {"error": "No search terms provided"}
+        
+        # Preprocessing terms
+        processed_terms = []
+        for term in terms:
+            processed = self.coefficient_calc.preprocess_text(
+                term, do_stemming=True, remove_stopwords=True)
+            processed_terms.extend(processed)
+        
+        # Cari dokumen yang mengandung terms
+        document_scores = defaultdict(float)
+        term_matches = defaultdict(list)
+        
+        for term in processed_terms:
+            if term in self.index:
+                for doc_id, term_data in self.index[term].items():
+                    document_scores[doc_id] += term_data['weight']
+                    term_matches[doc_id].append({
+                        "term": term,
+                        "weight": term_data['weight'],
+                        "positions": term_data['positions']
+                    })
+        
+        # Format hasil
+        results = []
+        for doc_id, score in document_scores.items():
+            results.append({
+                "doc_id": doc_id,
+                "score": score,
+                "document_preview": self.document_info[doc_id]['content'],
+                "matched_terms": term_matches[doc_id]
+            })
+        
+        # Sort by score descending
+        results.sort(key=lambda x: x["score"], reverse=True)
+        
+        return {
+            "query_terms": processed_terms,
+            "total_results": len(results),
+            "results": results
+        }
+    
+    def get_vocabulary_stats(self) -> Dict:
+        """
+        Mendapatkan statistik vocabulary
+        """
+        term_frequencies = {}
+        document_frequencies = {}
+        
+        for term in self.vocabulary:
+            total_freq = sum(data['raw_tf'] for data in self.index[term].values())
+            doc_freq = len(self.index[term])
+            
+            term_frequencies[term] = total_freq
+            document_frequencies[term] = doc_freq
+        
+        # Most frequent terms
+        most_frequent = sorted(term_frequencies.items(), 
+                             key=lambda x: x[1], reverse=True)[:10]
+        
+        # Most distributed terms (appearing in most documents)
+        most_distributed = sorted(document_frequencies.items(), 
+                                key=lambda x: x[1], reverse=True)[:10]
+        
+        return {
+            "vocabulary_size": len(self.vocabulary),
+            "total_documents": self.total_documents,
+            "most_frequent_terms": most_frequent,
+            "most_distributed_terms": most_distributed,
+            "average_document_length": sum(info['length'] for info in self.document_info.values()) / self.total_documents if self.total_documents > 0 else 0,
+            "average_unique_terms": sum(info['unique_terms'] for info in self.document_info.values()) / self.total_documents if self.total_documents > 0 else 0
+        }
+    
+    def calculate_similarity(self, doc_id1: int, doc_id2: int) -> float:
+        """
+        Menghitung cosine similarity antara dua dokumen
+        """
+        if doc_id1 not in self.document_info or doc_id2 not in self.document_info:
+            return 0.0
+        
+        vector1 = self.get_document_vector(doc_id1)
+        vector2 = self.get_document_vector(doc_id2)
+        
+        # Hitung dot product
+        dot_product = 0.0
+        for term in self.vocabulary:
+            weight1 = vector1.get(term, 0.0)
+            weight2 = vector2.get(term, 0.0)
+            dot_product += weight1 * weight2
+        
+        # Hitung magnitudes
+        magnitude1 = sum(weight ** 2 for weight in vector1.values()) ** 0.5
+        magnitude2 = sum(weight ** 2 for weight in vector2.values()) ** 0.5
+        
+        # Hitung cosine similarity
+        if magnitude1 == 0 or magnitude2 == 0:
+            return 0.0
+        
+        return dot_product / (magnitude1 * magnitude2)
+    
+    def find_similar_documents(self, doc_id: int, top_k: int = 5) -> List[Tuple[int, float]]:
+        """
+        Mencari dokumen yang mirip dengan dokumen tertentu
+        """
+        if doc_id not in self.document_info:
+            return []
+        
+        similarities = []
+        for other_doc_id in self.document_info:
+            if other_doc_id != doc_id:
+                similarity = self.calculate_similarity(doc_id, other_doc_id)
+                similarities.append((other_doc_id, similarity))
+        
+        # Sort by similarity descending
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        
+        return similarities[:top_k]
+    
+    def save_index(self, filepath: str) -> None:
+        """
+        Menyimpan index ke file
+        """
+        index_data = {
+            'index': dict(self.index),
+            'document_info': self.document_info,
+            'vocabulary': list(self.vocabulary),
+            'total_documents': self.total_documents
+        }
+        
+        if filepath.endswith('.json'):
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(index_data, f, ensure_ascii=False, indent=2)
+        else:
+            with open(filepath, 'wb') as f:
+                pickle.dump(index_data, f)
+    
+    def load_index(self, filepath: str) -> None:
+        """
+        Memuat index dari file
+        """
+        if filepath.endswith('.json'):
+            with open(filepath, 'r', encoding='utf-8') as f:
+                index_data = json.load(f)
+        else:
+            with open(filepath, 'rb') as f:
+                index_data = pickle.load(f)
+        
+        self.index = defaultdict(dict, index_data['index'])
+        self.document_info = index_data['document_info']
+        self.vocabulary = set(index_data['vocabulary'])
+        self.total_documents = index_data['total_documents']
+    
+    def get_index_summary(self) -> Dict:
+        """
+        Mendapatkan ringkasan lengkap dari index
+        """
+        return {
+            "total_documents": self.total_documents,
+            "vocabulary_size": len(self.vocabulary),
+            "total_term_document_pairs": sum(len(doc_dict) for doc_dict in self.index.values()),
+            "average_terms_per_document": sum(info['unique_terms'] for info in self.document_info.values()) / self.total_documents if self.total_documents > 0 else 0,
+            "vocabulary_stats": self.get_vocabulary_stats()
+        }
