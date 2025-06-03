@@ -11,7 +11,7 @@ import nltk
 def ensure_nltk_data():
     """Ensure required NLTK data is downloaded"""
     required_data = [
-        ('tokenizers/punkt', 'punkt'),
+        ('tokenizers/punkt_tab', 'punkt_tab'),  # Added for newer NLTK versions
         ('corpora/stopwords', 'stopwords'),
     ]
     
@@ -20,8 +20,11 @@ def ensure_nltk_data():
             nltk.data.find(data_path)
         except LookupError:
             print(f"NLTK '{data_name}' not found, downloading...")
-            nltk.download(data_name, quiet=True)
-            print(f"NLTK '{data_name}' downloaded successfully.")
+            try:
+                nltk.download(data_name, quiet=True)
+                print(f"NLTK '{data_name}' downloaded successfully.")
+            except Exception as e:
+                print(f"Failed to download NLTK '{data_name}': {e}")
 
 # Call this at module import
 ensure_nltk_data()
@@ -396,7 +399,7 @@ if __name__ == "__main__":
     # Parse cisi.all (to pickle for fast access)
     cisi_all = parse_cisi_all()
 
-    # save_as_json(cisi_all, os.path.join(PREPROCESSED_DIR, "cisi_all.json"))
+    save_as_json(cisi_all, os.path.join(PREPROCESSED_DIR, "cisi_all.json"))
     save_as_pickle(cisi_all, os.path.join(PREPROCESSED_DIR, "cisi_all.pkl"))
     
     print("Preprocessing completed successfully.")
