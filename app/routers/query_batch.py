@@ -13,8 +13,8 @@ from app.models import Query
 from app.services.query_expansion import expand_query_kb
 
 # Import kelas-kelas yang diperlukan
-from coefficient_calculator import CoefficientCalculator
-from map_calculator import MAPCalculator
+from app.service.coefficient_calculator import CoefficientCalculator
+from app.service.map_calculator import MAPCalculator
 
 router = APIRouter(prefix="/query_batch", tags=["batch_query"])
 
