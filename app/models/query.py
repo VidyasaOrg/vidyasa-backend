@@ -28,12 +28,11 @@ class Query:
     content: str = ""
     bibliography: str = ""
     
-    
     @staticmethod
     def from_json(data: dict) -> 'Query':
         """
         Create a Query object from a JSON-like dictionary.
-        
+
         Args:
             data (dict): Dictionary containing query data.
             
