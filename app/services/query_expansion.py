@@ -48,9 +48,6 @@ Make the query more focused, contextual, and aligned with the contents of releva
 Original query:
 {original_query}
 
-Some relevant documents:
-{chr(10).join(f"- {doc}" for doc in relevant_documents)}
-
 Provide the result in JSON format:
 {{
   "expanded-query": "<expanded query>"
