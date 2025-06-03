@@ -53,6 +53,7 @@ class QueryService:
         """
         # 1. Input Query
         raw_query = request.query
+        query_id = request.query_id
         is_stemming = request.is_stemming
         is_stop_words_removal = request.is_stop_words_removal
         term_frequency_method = request.term_frequency_method
@@ -91,17 +92,17 @@ class QueryService:
         
         # 5. MAP 
         original_ranking_ids = [sim.doc_id for sim in original_ranking]
-        original_map_score = 0.0
-        relevant_docs = set()
+        relevant_docs = None
         
         if is_queries_from_cisi:
-            query_id = next((q.id for q in self.queries if q.content == raw_query), None)
-            if query_id:
+            if query_id is not None:
                 relevant_docs = set(self.qrels.get_relevant_docs(query_id))
-                original_map_score = self.evaluation_service.calculate_map_score(
-                    original_ranking_ids, relevant_docs
-                )
-
+        
+        original_map_score = self.evaluation_service.calculate_map_score(
+            original_ranking_ids, 
+            relevant_docs,
+            is_queries_from_cisi
+        )
 
         ### QUERY EXPANSION PROCESSING ###
 
@@ -138,11 +139,11 @@ class QueryService:
         
         # Update ranking IDs for MAP calculation
         expanded_ranking_ids = [sim.doc_id for sim in expanded_ranking]
-        expanded_map = 0.0
-        if is_queries_from_cisi:
-            expanded_map = self.evaluation_service.calculate_map_score(
-                expanded_ranking_ids, relevant_docs
-            )
+        expanded_map = self.evaluation_service.calculate_map_score(
+            expanded_ranking_ids, 
+            relevant_docs,
+            is_queries_from_cisi
+        )
         
         return QueryResponse(
             original_ranking=original_ranking,

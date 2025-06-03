@@ -45,6 +45,7 @@ class QueryRequest(BaseModel):
 
     Attributes:
         query (str): Query text.
+        query_id (Optional[int]): Query ID for CISI dataset queries. Default: None.
         is_stemming (bool): Apply stemming. Default: False.
         is_stop_words_removal (bool): Remove stop words. Default: False.
         term_frequency_method (TermFrequencyMethod): Term frequency method. Default: RAW.
@@ -56,6 +57,7 @@ class QueryRequest(BaseModel):
     ```
     {
         "query": "information retrieval",
+        "query_id": 1,
         "is_stemming": true,
         "is_stop_words_removal": false,
         "term_frequency_method": "log",
@@ -66,6 +68,7 @@ class QueryRequest(BaseModel):
     ```
     """
     query: str
+    query_id: Optional[int] = None
     is_stemming: bool = False 
     is_stop_words_removal: bool = False 
     term_frequency_method: TermFrequencyMethod = TermFrequencyMethod.RAW
