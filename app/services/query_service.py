@@ -79,7 +79,7 @@ class QueryService:
         ### QUERY EXPANSION PROCESSING ###
 
         # 6. Query Expansion
-        expanded_query_text = self._expand_query(request.query, original_ranking_ids[:5])
+        expanded_query_text = self._expand_query(request.query, original_ranking_ids[:5], expansion_terms_count)
         
         # 7. Preprocessing Expanded Query    
         expanded_tokens = self._process_expanded_query(
@@ -125,7 +125,7 @@ class QueryService:
             expanded_query_weights=expanded_query_weights
         )
     
-    def _expand_query(self, original_query: str, top_doc_ids: List[int]) -> str:
+    def _expand_query(self, original_query: str, top_doc_ids: List[int], expansion_terms_count) -> str:
         """Expand query menggunakan top documents"""
         try:
             # Get document texts for expansion
@@ -136,7 +136,7 @@ class QueryService:
                     relevant_doc_texts.append(doc_text)
             
             # Expand query using AI
-            expansion_result = expand_query_kb(original_query, relevant_doc_texts)
+            expansion_result = expand_query_kb(original_query, relevant_doc_texts, expansion_terms_count)
             return expansion_result.get("expanded-query", original_query)
         except Exception as e:
             print(f"Query expansion failed: {e}")

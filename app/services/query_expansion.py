@@ -1,6 +1,7 @@
 import json
 import os
 import google.generativeai as genai
+from app.utils.clean_json_response import clean_json_response
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -11,9 +12,9 @@ if not api_key:
     raise RuntimeError("GEMINI_API_KEY environment variable not set")
 
 genai.configure(api_key=api_key) # type: ignore
-client = genai
+model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
-def expand_query_kb(original_query: str, relevant_documents: list[str]) -> dict:
+def expand_query_kb(original_query: str, relevant_documents: list[str], expansion_terms_count) -> dict:
     """
     Use Gemini to perform query expansion based on relevant documents.
     
@@ -24,48 +25,67 @@ def expand_query_kb(original_query: str, relevant_documents: list[str]) -> dict:
     Returns:
         dict: Contains the expanded query as {"expanded-query": "..."}
     """
+    if expansion_terms_count == "all":
+        max_terms = ""
+    else:
+        max_terms = f"- Make sure to only add {expansion_terms_count} terms to the original query, no more no less\n"
+
     prompt = f"""
-Gunakan pengetahuanmu untuk melakukan *query expansion* terhadap kalimat berikut agar pencarian dokumen menjadi lebih maksimal dan relevan.
+Use your knowledge to perform query expansion on the following sentence so that document retrieval becomes more effective and relevant.
 
-⚠️ PENTING:
-- Fokus untuk **memperluas** query asli dengan menambahkan konteks atau detail yang relevan dari dokumen, **bukan mengganti seluruh isi query asli**.
-- Jika ada bagian dari query yang kurang relevan atau tidak ditemukan di dokumen, barulah boleh diganti dengan sesuatu yang lebih tepat.
-- Hanya berikan **1 query hasil ekspansi terbaik**.
-- JANGAN gunakan operator boolean seperti AND, OR, atau tanda kutip ganda (" ").
-- Jangan berikan daftar sinonim atau alternatif dalam satu string.
-- Hindari bentuk seperti: "<opsi 1>" OR "<opsi 2>".
-- Hasilkan query dalam bentuk kalimat natural, eksplisit, dan spesifik seolah-olah pengguna tahu persis apa yang dicari.
+⚠️ IMPORTANT:
+- Focus on expanding the original query by adding relevant context or details from the documents, not by completely replacing the original query.
+- If any part of the query is less relevant or not found in the documents, only then may it be replaced with something more accurate.
+- Provide only 1 best expanded query.
+- DO NOT use boolean operators like AND, OR, or double quotation marks (" ").
+- Do not provide a list of synonyms or alternatives in one string.
+- Avoid formats like: "<option 1>" OR "<option 2>".
+- Generate the query as a natural, explicit, and specific sentence, as if the user knows exactly what they are looking for.
+{max_terms}
+🔍 Goal:
+Make the query more focused, contextual, and aligned with the contents of relevant documents, without losing the original intent.
 
-🔍 Tujuan:
-Jadikan query lebih fokus, kontekstual, dan sesuai dengan isi dokumen relevan tanpa kehilangan maksud aslinya.
-
-Query asli:
+Original query:
 {original_query}
 
-Beberapa dokumen yang relevan:
+Some relevant documents:
 {chr(10).join(f"- {doc}" for doc in relevant_documents)}
 
-Berikan hasil dalam format JSON:
+Provide the result in JSON format:
 {{
-  "expanded-query": "<query hasil ekspansi>"
+  "expanded-query": "<expanded query>"
 }}
 
-Contoh:
-Query asli: "aturan asuransi"
-Dokumen: menyebut "peraturan klaim BPJS Kesehatan 2022"
-Hasil ekspansi:
+Example:
+Original query: "BPJS regulations"
+Document: mentions "BPJS Health claim regulations 2022"
+Additional terms: 3
+Expanded result:
 {{
-  "expanded-query": "aturan klaim BPJS Kesehatan tahun 2022"
+  "expanded-query": "BPJS Health claim regulations 2022"
+}}
+
+Original query: "BPJS regulations"
+Document: mentions "BPJS Health claim regulations 2022"
+Additional terms: 2
+Expanded result:
+{{
+  "expanded-query": "BPJS Health claim regulations"
+}}
+
+Original query: "BPJS regulations"
+Document: mentions "BPJS Health claim regulations 2022"
+Additional terms: **not mentioned**
+Expanded result:
+{{
+  "expanded-query": "BPJS Health claim regulations in 2022"
 }}
 """
 
     try:
-        response = client.models.generate_content(
-            model="gemini-1.5-flash",  # Or use "gemini-1.5-pro" for more accuracy
-            contents=[{"role": "user", "parts": [prompt]}],
-        )
+        response = model.generate_content(prompt)
         content = response.text.strip()
-        parsed = json.loads(content)
+        parsed = clean_json_response(content)
         return parsed
     except Exception as e:
         raise RuntimeError(f"Failed to expand query: {e}")
