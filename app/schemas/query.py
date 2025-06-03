@@ -125,3 +125,50 @@ class QueryResponse(BaseModel):
     expanded_query: str
     expanded_map_score: float = 0.0
     expanded_query_weights: Dict[str, float]
+
+class QueryBatchResponse(BaseModel):
+    """
+    Response model for batch query processing.
+    
+    Attributes:
+        results (List[QueryResponse]): List of query processing results, one for each query in the batch
+    """
+    results: List[QueryResponse]
+
+class QueryBatchRequest(BaseModel):
+    """
+    Batch search query request.
+
+    Attributes:
+        queries (List[str]): List of query texts, one per line.
+        is_stemming (bool): Apply stemming. Default: False.
+        is_stop_words_removal (bool): Remove stop words. Default: False.
+        term_frequency_method (TermFrequencyMethod): Term frequency method. Default: RAW.
+        term_weighting_method (TermWeightingMethod): Term weighting method. Default: TF.
+        expansion_terms_count (Union[int, Literal["all"]]): Number of expansion terms. Default: "all".
+        is_queries_from_cisi (bool): Indicates if the queries are from CISI queries. Default: False.
+
+    Example in json:
+    ```
+    {
+        "queries": [
+            "information retrieval",
+            "database systems",
+            "artificial intelligence"
+        ],
+        "is_stemming": true,
+        "is_stop_words_removal": false,
+        "term_frequency_method": "log",
+        "term_weighting_method": "tf_idf",
+        "expansion_terms_count": 5,
+        "is_queries_from_cisi": true
+    }
+    ```
+    """
+    queries: List[str]
+    is_stemming: bool = False 
+    is_stop_words_removal: bool = False 
+    term_frequency_method: TermFrequencyMethod = TermFrequencyMethod.RAW
+    term_weighting_method: TermWeightingMethod = TermWeightingMethod.TF
+    expansion_terms_count: Union[int, Literal["all"]] = "all"
+    is_queries_from_cisi: bool = False

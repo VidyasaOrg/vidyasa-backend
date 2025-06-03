@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Literal, Optional
+from typing import List, Dict, Union, Literal, Optional, Tuple
 import math
 from collections import defaultdict
 
@@ -19,11 +19,38 @@ class QueryService:
         self.similarity_service = SimilarityService(irdata)
         self.evaluation_service = EvaluationService()
     
+    def _filter_and_normalize_rankings(
+        self,
+        original_ranking: List[DocumentSimilarityScore],
+        expanded_ranking: List[DocumentSimilarityScore]
+    ) -> Tuple[List[DocumentSimilarityScore], List[DocumentSimilarityScore]]:
+        """
+        Filter out documents with similarity score <= 0 and ensure consistent response length.
+        
+        Args:
+            original_ranking: List of documents ranked by original query
+            expanded_ranking: List of documents ranked by expanded query
+            
+        Returns:
+            Tuple containing filtered and length-normalized original and expanded rankings
+        """
+        # Filter out documents with similarity score <= 0
+        original_filtered = [doc for doc in original_ranking if doc.similarity_score > 0]
+        expanded_filtered = [doc for doc in expanded_ranking if doc.similarity_score > 0]
+        
+        # Get the maximum length between the two rankings
+        max_length = max(len(original_filtered), len(expanded_filtered))
+        
+        # Return top max_length documents for both rankings
+        return (
+            original_filtered[:max_length],
+            expanded_filtered[:max_length]
+        )
+
     def process_single_query(self, request: QueryRequest) -> QueryResponse:
         """
-        
+        Process a single query and return results.
         """
-        
         # 1. Input Query
         raw_query = request.query
         is_stemming = request.is_stemming
@@ -104,7 +131,12 @@ class QueryService:
             request.term_weighting_method
         )
         
-        # 10. MAP untuk Expanded Query
+        # Filter and normalize rankings
+        original_ranking, expanded_ranking = self._filter_and_normalize_rankings(
+            original_ranking, expanded_ranking
+        )
+        
+        # Update ranking IDs for MAP calculation
         expanded_ranking_ids = [sim.doc_id for sim in expanded_ranking]
         expanded_map = 0.0
         if is_queries_from_cisi:
