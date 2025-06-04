@@ -29,12 +29,10 @@ class TermWeightingMethod(str, Enum):
     - TF: Term Frequency
     - IDF: Inverse Document Frequency
     - TF_IDF: TF . IDF (product of term frequency and inverse document frequency)
-    - TF_IDF_NORM: Normalized TF . IDF (Cosine normalization of TF . IDF)
     """
     TF = "tf" 
     IDF = "idf"
     TF_IDF = "tf_idf"
-    TF_IDF_NORM = "tf_idf_norm"
     
     def __str__(self) :
         return self.value

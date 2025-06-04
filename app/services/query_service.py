@@ -247,14 +247,14 @@ class SimilarityService:
                 final_weight = self.irdata.idf.get(term, 0)
             elif weighting_method == TermWeightingMethod.TF_IDF:
                 final_weight = tf_weight * self.irdata.idf.get(term, 0)
-            elif weighting_method == TermWeightingMethod.TF_IDF_NORM:
+            elif cosine_normalization_query:
                 final_weight = tf_weight * self.irdata.idf.get(term, 0)
             else:
                 final_weight = tf_weight
                 
             query_weights[term] = final_weight
         
-        # Apply cosine normalization if TF_IDF_NORM
+        # Apply cosine normalization if cosine_normalization_query = True
         if cosine_normalization_query and query_weights:
             norm = math.sqrt(sum(w**2 for w in query_weights.values()))
             if norm > 0:
@@ -292,14 +292,14 @@ class SimilarityService:
                 weight = self.irdata.idf.get(term, 0)
             elif weighting_method == TermWeightingMethod.TF_IDF:
                 weight = tf * self.irdata.idf.get(term, 0)
-            elif weighting_method == TermWeightingMethod.TF_IDF_NORM:
+            elif cosine_normalization_document:
                 weight = tf * self.irdata.idf.get(term, 0)
             else:
                 weight = tf
                 
             doc_weights[term] = weight
         
-        # Apply cosine normalization if TF_IDF_NORM
+        # Apply cosine normalization if cosine_normalization_document = True
         if cosine_normalization_document and doc_weights:
             norm = math.sqrt(sum(w**2 for w in doc_weights.values()))
             if norm > 0:
