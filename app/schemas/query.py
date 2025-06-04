@@ -46,7 +46,7 @@ class QueryRequest(BaseModel):
         query_id (Optional[int]): Query ID for CISI dataset queries. Default: None.
         is_stemming (bool): Apply stemming. Default: False.
         is_stop_words_removal (bool): Remove stop words. Default: False.
-        term_frequency_method (TermFrequencyMethod): Term frequency method. Default: RAW.
+        query_term_frequency_method (TermFrequencyMethod): Term frequency method. Default: RAW.
         term_weighting_method (TermWeightingMethod): Term weighting method. Default: TF.
         expansion_terms_count (Union[int, Literal["all"]]): Number of expansion terms. Default: "all".
         is_queries_from_cisi (bool): Indicates if the query is from CISI queries. Default: False.
@@ -58,7 +58,7 @@ class QueryRequest(BaseModel):
         "query_id": 1,
         "is_stemming": true,
         "is_stop_words_removal": false,
-        "term_frequency_method": "log",
+        "query_term_frequency_method": "log",
         "term_weighting_method": "tf_idf",
         "expansion_terms_count": 5,
         "is_queries_from_cisi": true
@@ -148,8 +148,12 @@ class QueryBatchRequest(BaseModel):
         queries (List[str]): List of query texts, one per line.
         is_stemming (bool): Apply stemming. Default: False.
         is_stop_words_removal (bool): Remove stop words. Default: False.
-        term_frequency_method (TermFrequencyMethod): Term frequency method. Default: RAW.
-        term_weighting_method (TermWeightingMethod): Term weighting method. Default: TF.
+        query_term_frequency_method (TermFrequencyMethod): Term frequency method. Default: RAW.
+        query_term_weighting_method (TermWeightingMethod): Term weighting method. Default: TF.
+        document_term_frequency_method (TermFrequencyMethod): Term frequency method for documents. Default: RAW.
+        document_term_weighting_method (TermWeightingMethod): Term weighting method for documents. Default: TF.
+        cosine_normalization_query (bool): Whether to apply cosine normalization to query vectors. Default: False.
+        cosine_normalization_document (bool): Whether to apply cosine normalization to document vectors. Default: False.
         expansion_terms_count (Union[int, Literal["all"]]): Number of expansion terms. Default: "all".
         is_queries_from_cisi (bool): Indicates if the queries are from CISI queries. Default: False.
 
@@ -163,8 +167,12 @@ class QueryBatchRequest(BaseModel):
         ],
         "is_stemming": true,
         "is_stop_words_removal": false,
-        "term_frequency_method": "log",
-        "term_weighting_method": "tf_idf",
+        "query_term_frequency_method": "log",
+        "query_term_weighting_method": "tf_idf",
+        "document_term_frequency_method": "raw",
+        "document_term_weighting_method": "tf",
+        "cosine_normalization_query": false,
+        "cosine_normalization_document": false,
         "expansion_terms_count": 5,
         "is_queries_from_cisi": true
     }

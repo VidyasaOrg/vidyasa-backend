@@ -125,17 +125,19 @@ class QueryService:
         )
         
         # 8. Weights Per Term for Expanded Query    
-        expanded_query_weights = float(self.similarity_service.calculate_term_weights(
+        expanded_query_weights = self.similarity_service.calculate_term_weights(
             expanded_tokens, 
             request.query_term_frequency_method, 
-            request.query_term_weighting_method
-        ))
+            request.query_term_weighting_method,
+            cosine_normalization_query=request.cosine_normalization_query
+        )
         
         # 9. Document Ranking for Expanded Query
         expanded_ranking = self.similarity_service.rank_documents(
             expanded_query_weights, 
             request.document_term_frequency_method, 
-            request.document_term_weighting_method
+            request.document_term_weighting_method,
+            cosine_normalization_document=request.cosine_normalization_document,
         )
         
         # Filter and normalize rankings

@@ -45,8 +45,12 @@ async def search_single_query(request: QueryRequest):
         "query": "information retrieval",
         "is_stemming": true,
         "is_stop_words_removal": false,
-        "term_frequency_method": "log",
-        "term_weighting_method": "tf_idf",
+        "query_term_frequency_method": "log",
+        "query_term_weighting_method": "tf_idf",
+        "document_term_frequency_method": "raw",
+        "document_term_weighting_method": "tf",
+        "cosine_normalization_query": false,
+        "cosine_normalization_document": false,
         "expansion_terms_count": 5
         "is_queries_from_cisi": false
     }
