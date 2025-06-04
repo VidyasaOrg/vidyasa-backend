@@ -25,7 +25,7 @@ async def search_batch_queries(
     document_term_weighting_method: TermWeightingMethod = Form(TermWeightingMethod.TF, description="Term weighting method to use in documents"),
     cosine_normalization_query: bool = Form(False, description="Whether to apply cosine normalization to query vectors"),
     cosine_normalization_document: bool = Form(False, description="Whether to apply cosine normalization to document vectors"),
-    expansion_terms_count: int = Form(5, description="Number of terms to expand the query with (0 for no expansion)"),
+    expansion_terms_count: str = Form("5", description="Number of terms to expand the query with (0 for no expansion, or 'all')"),
     is_queries_from_cisi: bool = Form(True, description="Whether queries are from CISI dataset")
 ):
     """
@@ -57,6 +57,13 @@ async def search_batch_queries(
     ```
     """
     try:
+        if expansion_terms_count == "all":
+            expansion_terms_count_value = "all"
+        else:
+            try:
+                expansion_terms_count_value = int(expansion_terms_count)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="expansion_terms_count must be an integer or 'all'")
         # Read and process the file content
         content = await file.read()
         # Parse query IDs, one per line
@@ -91,7 +98,7 @@ async def search_batch_queries(
                 document_term_weighting_method=document_term_weighting_method,
                 cosine_normalization_query=cosine_normalization_query,
                 cosine_normalization_document=cosine_normalization_document,
-                expansion_terms_count=expansion_terms_count,
+                expansion_terms_count=expansion_terms_count_value,
                 is_queries_from_cisi=is_queries_from_cisi
             )
             
