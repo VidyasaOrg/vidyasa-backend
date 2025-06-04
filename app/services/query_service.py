@@ -310,7 +310,12 @@ class SimilarityService:
             norm = math.sqrt(sum(w**2 for w in doc_weights.values()))
             if norm > 0:
                 doc_weights = {term: weight/norm for term, weight in doc_weights.items()}
-            
+        elif doc_weights:
+            # Apply normal (L1) normalization if cosine normalization is not used
+            norm = sum(abs(w) for w in doc_weights.values())
+            if norm > 0:
+                doc_weights = {term: weight/norm for term, weight in doc_weights.items()}
+                            
         # Calculate similarity (dot product)
         similarity = 0.0
         for term, q_weight in query_weights.items():
