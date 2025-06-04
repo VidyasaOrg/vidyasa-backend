@@ -19,8 +19,12 @@ async def search_batch_queries(
     file: UploadFile = File(..., description="File containing query IDs (one per line)"),
     is_stemming: bool = Form(False, description="Apply stemming to queries"),
     is_stop_words_removal: bool = Form(False, description="Remove stop words from queries"),
-    term_frequency_method: TermFrequencyMethod = Form(TermFrequencyMethod.RAW, description="Term frequency method to use"),
-    term_weighting_method: TermWeightingMethod = Form(TermWeightingMethod.TF, description="Term weighting method to use"),
+    query_term_frequency_method: TermFrequencyMethod = Form(TermFrequencyMethod.RAW, description="Term frequency method to use in queries"),
+    query_term_weighting_method: TermWeightingMethod = Form(TermWeightingMethod.TF, description="Term weighting method to use in queries"),
+    document_term_frequency_method: TermFrequencyMethod = Form(TermFrequencyMethod.RAW, description="Term frequency method to use in documents"),
+    document_term_weighting_method: TermWeightingMethod = Form(TermWeightingMethod.TF, description="Term weighting method to use in documents"),
+    cosine_normalization_query: bool = Form(False, description="Whether to apply cosine normalization to query vectors"),
+    cosine_normalization_document: bool = Form(False, description="Whether to apply cosine normalization to document vectors"),
     expansion_terms_count: int = Form(5, description="Number of terms to expand the query with (0 for no expansion)"),
     is_queries_from_cisi: bool = Form(True, description="Whether queries are from CISI dataset")
 ):
@@ -33,8 +37,12 @@ async def search_batch_queries(
         file: Text file containing query IDs (one per line)
         is_stemming: Whether to apply stemming to queries
         is_stop_words_removal: Whether to remove stop words from queries
-        term_frequency_method: Method to calculate term frequency
-        term_weighting_method: Method to calculate term weights
+        query_term_frequency_method: Method to calculate term frequency in queries
+        query_term_weighting_method: Method to calculate term weights in queries
+        document_term_frequency_method: Method to calculate term frequency in documents
+        document_term_weighting_method: Method to calculate term weights in documents
+        cosine_normalization_query: Whether to apply cosine normalization to query vectors
+        cosine_normalization_document: Whether to apply cosine normalization to document vectors
         expansion_terms_count: Number of terms to use for query expansion
         is_queries_from_cisi: Whether queries are from CISI dataset (defaults to True for batch processing)
         
@@ -77,8 +85,12 @@ async def search_batch_queries(
                 query_id=qid,
                 is_stemming=is_stemming,
                 is_stop_words_removal=is_stop_words_removal,
-                term_frequency_method=term_frequency_method,
-                term_weighting_method=term_weighting_method,
+                query_term_frequency_method=query_term_frequency_method,
+                query_term_weighting_method=query_term_weighting_method,
+                document_term_frequency_method=document_term_frequency_method,
+                document_term_weighting_method=document_term_weighting_method,
+                cosine_normalization_query=cosine_normalization_query,
+                cosine_normalization_document=cosine_normalization_document,
                 expansion_terms_count=expansion_terms_count,
                 is_queries_from_cisi=is_queries_from_cisi
             )
@@ -146,8 +158,12 @@ async def search_batch_queries_json(request: QueryBatchRequest):
                 query=query,
                 is_stemming=request.is_stemming,
                 is_stop_words_removal=request.is_stop_words_removal,
-                term_frequency_method=request.term_frequency_method,
-                term_weighting_method=request.term_weighting_method,
+                query_term_frequency_method=request.query_term_frequency_method,
+                query_term_weighting_method=request.query_term_weighting_method,
+                document_term_frequency_method=request.document_term_frequency_method,
+                document_term_weighting_method=request.document_term_weighting_method,
+                cosine_normalization_query=request.cosine_normalization_query,
+                cosine_normalization_document=request.cosine_normalization_document,
                 expansion_terms_count=request.expansion_terms_count,
                 is_queries_from_cisi=request.is_queries_from_cisi
             )

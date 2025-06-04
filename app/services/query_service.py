@@ -56,8 +56,12 @@ class QueryService:
         query_id = request.query_id
         is_stemming = request.is_stemming
         is_stop_words_removal = request.is_stop_words_removal
-        term_frequency_method = request.term_frequency_method
-        term_weighting_method = request.term_weighting_method
+        query_term_frequency_method = request.query_term_frequency_method
+        query_term_weighting_method = request.query_term_weighting_method
+        document_term_frequency_method=request.document_term_frequency_method,
+        document_term_weighting_method=request.document_term_weighting_method,
+        cosine_normalization_query=request.cosine_normalization_query,
+        cosine_normalization_document=request.cosine_normalization_document,
         expansion_terms_count = request.expansion_terms_count
         is_queries_from_cisi = request.is_queries_from_cisi
         
@@ -79,15 +83,17 @@ class QueryService:
         # 3. Weights Per Term
         original_query_weights = self.similarity_service.calculate_term_weights(
             preprocessed_tokens, 
-            term_frequency_method,
-            term_weighting_method
+            query_term_frequency_method,
+            query_term_weighting_method,
+            cosine_normalization_query=cosine_normalization_query
         )
         
         # 4. Document Ranking
         original_ranking = self.similarity_service.rank_documents(
             original_query_weights, 
-            term_frequency_method,
-            term_weighting_method
+            document_term_frequency_method,
+            document_term_weighting_method,
+            cosine_normalization_document=cosine_normalization_document
         )
         
         # 5. MAP 
@@ -208,7 +214,8 @@ class SimilarityService:
         self, 
         tokens: List[str], 
         tf_method: TermFrequencyMethod,
-        weighting_method: TermWeightingMethod
+        weighting_method: TermWeightingMethod,
+        cosine_normalization_query: bool = False
     ) -> Dict[str, float]:
         """Calculate query vector weights"""
         # Count term frequencies in query
@@ -248,11 +255,10 @@ class SimilarityService:
             query_weights[term] = final_weight
         
         # Apply cosine normalization if TF_IDF_NORM
-        if weighting_method == TermWeightingMethod.TF_IDF_NORM and query_weights:
+        if cosine_normalization_query and query_weights:
             norm = math.sqrt(sum(w**2 for w in query_weights.values()))
             if norm > 0:
                 query_weights = {term: weight/norm for term, weight in query_weights.items()}
-        
         return query_weights
     
     def calculate_document_similarity(
@@ -260,7 +266,8 @@ class SimilarityService:
         query_weights: Dict[str, float], 
         doc: Document, 
         tf_method: str, 
-        weighting_method: TermWeightingMethod
+        weighting_method: TermWeightingMethod,
+        cosine_normalization_document: bool = False
     ) -> float:
         """Calculate similarity between query and document"""
         # Get document TF based on method
@@ -293,11 +300,11 @@ class SimilarityService:
             doc_weights[term] = weight
         
         # Apply cosine normalization if TF_IDF_NORM
-        if weighting_method == TermWeightingMethod.TF_IDF_NORM and doc_weights:
+        if cosine_normalization_document and doc_weights:
             norm = math.sqrt(sum(w**2 for w in doc_weights.values()))
             if norm > 0:
                 doc_weights = {term: weight/norm for term, weight in doc_weights.items()}
-        
+            
         # Calculate similarity (dot product)
         similarity = 0.0
         for term, q_weight in query_weights.items():
@@ -310,14 +317,15 @@ class SimilarityService:
         self, 
         query_weights: Dict[str, float], 
         tf_method: str, 
-        weighting_method: TermWeightingMethod
+        weighting_method: TermWeightingMethod,
+        cosine_normalization_document: bool = False
     ) -> List[DocumentSimilarityScore]:
         """Rank all documents by similarity to query"""
         similarities = []
         
         for doc in self.irdata.documents:
             similarity = self.calculate_document_similarity(
-                query_weights, doc, tf_method, weighting_method
+                query_weights, doc, tf_method, weighting_method, cosine_normalization_document
             )
             similarities.append(DocumentSimilarityScore(
                 doc_id=doc.id,

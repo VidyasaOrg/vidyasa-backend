@@ -71,8 +71,12 @@ class QueryRequest(BaseModel):
     query_id: Optional[int] = None
     is_stemming: bool = False 
     is_stop_words_removal: bool = False 
-    term_frequency_method: TermFrequencyMethod = TermFrequencyMethod.RAW
-    term_weighting_method: TermWeightingMethod = TermWeightingMethod.TF
+    query_term_frequency_method: TermFrequencyMethod = TermFrequencyMethod.RAW
+    query_term_weighting_method: TermWeightingMethod = TermWeightingMethod.TF
+    document_term_frequency_method: TermFrequencyMethod = TermFrequencyMethod.RAW
+    document_term_weighting_method: TermWeightingMethod = TermWeightingMethod.TF
+    cosine_normalization_query: bool = False 
+    cosine_normalization_document: bool = False
     expansion_terms_count: Union[int, Literal["all"]] = "all"
     is_queries_from_cisi: bool = False
 
@@ -171,7 +175,11 @@ class QueryBatchRequest(BaseModel):
     queries: List[str]
     is_stemming: bool = False 
     is_stop_words_removal: bool = False 
-    term_frequency_method: TermFrequencyMethod = TermFrequencyMethod.RAW
-    term_weighting_method: TermWeightingMethod = TermWeightingMethod.TF
+    query_term_frequency_method: TermFrequencyMethod = TermFrequencyMethod.RAW
+    query_term_weighting_method: TermWeightingMethod = TermWeightingMethod.TF
+    document_term_frequency_method: TermFrequencyMethod = TermFrequencyMethod.RAW
+    document_term_weighting_method: TermWeightingMethod = TermWeightingMethod.TF
+    cosine_normalization_query: bool = False 
+    cosine_normalization_document: bool = False
     expansion_terms_count: Union[int, Literal["all"]] = "all"
     is_queries_from_cisi: bool = False
