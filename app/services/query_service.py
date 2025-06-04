@@ -58,54 +58,54 @@ class QueryService:
         is_stop_words_removal = request.is_stop_words_removal
         query_term_frequency_method = request.query_term_frequency_method
         query_term_weighting_method = request.query_term_weighting_method
-        document_term_frequency_method=request.document_term_frequency_method,
-        document_term_weighting_method=request.document_term_weighting_method,
-        cosine_normalization_query=request.cosine_normalization_query,
-        cosine_normalization_document=request.cosine_normalization_document,
+        document_term_frequency_method=request.document_term_frequency_method
+        document_term_weighting_method=request.document_term_weighting_method
+        cosine_normalization_query=request.cosine_normalization_query
+        cosine_normalization_document=request.cosine_normalization_document
         expansion_terms_count = request.expansion_terms_count
         is_queries_from_cisi = request.is_queries_from_cisi
-        
+
         if not raw_query.strip():
             raise ValueError("Query cannot be empty.")
-        
+
         ### ORIGINAL QUERY PROCESSING ###
-        
+
         # 2. Preprocessing Query
         preprocessed_tokens = tokenize_and_preprocess(
             raw_query,
             is_stem=is_stemming,
             is_stop_words_removal=is_stop_words_removal
         )
-        
+
         if not preprocessed_tokens:
             raise ValueError("Query must contain at least one valid token after preprocessing.")
-        
+
         # 3. Weights Per Term
         original_query_weights = self.similarity_service.calculate_term_weights(
-            preprocessed_tokens, 
+            preprocessed_tokens,
             query_term_frequency_method,
             query_term_weighting_method,
             cosine_normalization_query=cosine_normalization_query
         )
-        
+
         # 4. Document Ranking
         original_ranking = self.similarity_service.rank_documents(
-            original_query_weights, 
+            original_query_weights,
             document_term_frequency_method,
             document_term_weighting_method,
             cosine_normalization_document=cosine_normalization_document
         )
-        
-        # 5. MAP 
+
+        # 5. MAP
         original_ranking_ids = [sim.doc_id for sim in original_ranking]
         relevant_docs = None
-        
+
         if is_queries_from_cisi:
             if query_id is not None:
                 relevant_docs = set(self.qrels.get_relevant_docs(query_id))
-        
+
         original_map_score = self.evaluation_service.calculate_map_score(
-            original_ranking_ids, 
+            original_ranking_ids,
             relevant_docs,
             is_queries_from_cisi
         )
@@ -114,46 +114,52 @@ class QueryService:
 
         # 6. Query Expansion
         expanded_query_text = self._expand_query(request.query, original_ranking_ids[:5], expansion_terms_count)
-        
-        # 7. Preprocessing Expanded Query    
+
+        # 7. Preprocessing Expanded Query
         expanded_tokens = self._process_expanded_query(
-            expanded_query_text, 
-            preprocessed_tokens, 
+            expanded_query_text,
+            preprocessed_tokens,
             expansion_terms_count,
             is_stemming,
             is_stop_words_removal
         )
-        
-        # 8. Weights Per Term for Expanded Query    
+
+        # 8. Weights Per Term for Expanded Query
         expanded_query_weights = self.similarity_service.calculate_term_weights(
-            expanded_tokens, 
-            request.query_term_frequency_method, 
+            expanded_tokens,
+            request.query_term_frequency_method,
             request.query_term_weighting_method,
             cosine_normalization_query=request.cosine_normalization_query
         )
-        
+
         # 9. Document Ranking for Expanded Query
         expanded_ranking = self.similarity_service.rank_documents(
-            expanded_query_weights, 
-            request.document_term_frequency_method, 
+            expanded_query_weights,
+            request.document_term_frequency_method,
             request.document_term_weighting_method,
             cosine_normalization_document=request.cosine_normalization_document,
         )
-        
+
         # Filter and normalize rankings
         original_ranking, expanded_ranking = self._filter_and_normalize_rankings(
             original_ranking, expanded_ranking
         )
-        
+
         # Update ranking IDs for MAP calculation
         expanded_ranking_ids = [sim.doc_id for sim in expanded_ranking]
         expanded_map = float(self.evaluation_service.calculate_map_score(
-            expanded_ranking_ids, 
+            expanded_ranking_ids,
             relevant_docs,
             is_queries_from_cisi
         ))
 
         print("expanded_map", expanded_map)
+        print("query_term_frequency_method", query_term_frequency_method)
+        print("query_term_weighting_method", query_term_weighting_method)
+        print("document_term_frequency_method", document_term_frequency_method)
+        print("document_term_weighting_method", document_term_weighting_method)
+        print("cosine_normalization_query", cosine_normalization_query)
+        print("cosine_normalization_document", cosine_normalization_document)
         
         return QueryResponse(
             original_ranking=original_ranking,
