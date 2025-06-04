@@ -125,17 +125,17 @@ class QueryService:
         )
         
         # 8. Weights Per Term for Expanded Query    
-        expanded_query_weights = self.similarity_service.calculate_term_weights(
+        expanded_query_weights = float(self.similarity_service.calculate_term_weights(
             expanded_tokens, 
-            request.term_frequency_method, 
-            request.term_weighting_method
-        )
+            request.query_term_frequency_method, 
+            request.query_term_weighting_method
+        ))
         
         # 9. Document Ranking for Expanded Query
         expanded_ranking = self.similarity_service.rank_documents(
             expanded_query_weights, 
-            request.term_frequency_method, 
-            request.term_weighting_method
+            request.document_term_frequency_method, 
+            request.document_term_weighting_method
         )
         
         # Filter and normalize rankings
@@ -145,11 +145,13 @@ class QueryService:
         
         # Update ranking IDs for MAP calculation
         expanded_ranking_ids = [sim.doc_id for sim in expanded_ranking]
-        expanded_map = self.evaluation_service.calculate_map_score(
+        expanded_map = float(self.evaluation_service.calculate_map_score(
             expanded_ranking_ids, 
             relevant_docs,
             is_queries_from_cisi
-        )
+        ))
+
+        print("expanded_map", expanded_map)
         
         return QueryResponse(
             original_ranking=original_ranking,
@@ -367,5 +369,9 @@ class EvaluationService:
                 relevant_retrieved += 1
                 precision_at_i = relevant_retrieved / (i + 1)
                 precision_sum += precision_at_i
-        
-        return precision_sum / len(relevant_docs) if relevant_docs else 0.0
+
+        print("precision_sum", precision_sum)
+        print("relevant_docs", len(relevant_docs))
+        print("map", precision_sum / len(relevant_docs))
+
+        return float(precision_sum / len(relevant_docs)) if relevant_docs else 0.0

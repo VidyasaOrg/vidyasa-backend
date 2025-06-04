@@ -82,6 +82,8 @@ class EvaluationService:
         # Return -1.0 if query not found or not from CISI
         if not is_queries_from_cisi or relevant_docs is None:
             return -1.0
-            
-        return self.calculate_average_precision(ranking, relevant_docs)
+
+        temp = self.calculate_average_precision(ranking, relevant_docs)
+        print(f"MAP Score: {temp}")  # Debugging output
+        return temp
 
