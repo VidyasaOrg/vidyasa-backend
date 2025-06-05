@@ -1,25 +1,30 @@
 from pydantic import BaseModel
-from typing import Dict, List
+from typing import Dict, List, Any
 
 class InvertedFileByDocIdResponse(BaseModel):
     """
-    Response model for inverted file lookup by document ID.
+    Response model for inverted file lookup by term.
 
     Attributes:
-        doc_id (int): Document ID.
-        term_postings (Dict[str, List[int]]): Mapping from term to list of positions in the document.
+        term (str): The term.
+        docs (List[Dict]): List of dicts with doc_id, document_preview, and weight.
 
     Example:
     {
-        "doc_id": 1,
-        "term_postings": {
-            "information": [2, 10],
-            "retrieval": [5]
-        }
+        "term": "information",
+        "docs": [
+            {
+                "doc_id": 1,
+                "document_preview": "What is information retrieval?...",
+                "weight": 2
+            }
+        ]
     }
     """
     doc_id: int
-    term_postings: Dict[str, List[int]] = {}
+    term_postings: Dict[str, Dict[str, Any]] = {}
+    document_preview: str = ""
+    total_terms: int = 0
 
 class InvertedFileByTermResponse(BaseModel):
     """
@@ -27,13 +32,19 @@ class InvertedFileByTermResponse(BaseModel):
 
     Attributes:
         term (str): The term.
-        docs List[int]: List of document IDs where the term appears.
+        docs (List[Dict]): List of dicts with doc_id, document_preview, and weight.
 
     Example:
     {
         "term": "information",
-        "docs": [1, 2, 3]
+        "docs": [
+            {
+                "doc_id": 1,
+                "document_preview": "What is information retrieval?...",
+                "weight": 2
+            }
+        ]
     }
     """
     term: str
-    docs: List[int] = []
+    docs: List[Dict[str, Any]] = []

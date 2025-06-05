@@ -10,31 +10,26 @@ router = APIRouter(prefix="/inverted_file", tags=["inverted_index"])
 async def get_posting_list_by_term(
     term: str = Path(..., description="Term to lookup in inverted index", min_length=1)
 ):
-    """
-    Retrieve posting list for a specific term from the inverted index.
-    
-    Args:
-        term (str): The term to lookup in the inverted index
-        
-    Returns:
-        InvertedFileByTermResponse: Term and list of document IDs containing the term (empty list if term not found)
-        
-    Raises:
-        HTTPException: 400 if term is invalid
-    """
     try:
         irdata: IRData = get_irdata()
-        
-        # Normalize term to lowercase for consistent lookup
         normalized_term = term.lower().strip()
-        
         if not normalized_term:
             raise HTTPException(status_code=400, detail="Term cannot be empty or whitespace only")
         
         doc_ids = irdata.inverse_doc_by_term.get(normalized_term, [])
-        
-        return InvertedFileByTermResponse(term=normalized_term, docs=doc_ids)
-        
+        docs = []
+        for doc_id in doc_ids:
+            doc = next((d for d in irdata.documents if d.id == doc_id), None)
+            if doc:
+                document_preview = (doc.content[:100] + "...") if len(doc.content) > 100 else doc.content
+                weight = doc.raw_tf.get(normalized_term, 0)  
+                docs.append({
+                    "doc_id": doc_id,
+                    "document_preview": document_preview,
+                    "weight": weight
+                })
+
+        return InvertedFileByTermResponse(term=normalized_term, docs=docs)
     except HTTPException:
         raise
     except Exception as e:
@@ -44,28 +39,28 @@ async def get_posting_list_by_term(
 async def get_document_terms_and_positions(
     doc_id: int = Path(..., description="Document ID to retrieve term positions for", ge=1)
 ):
-    """
-    Retrieve all terms and their positions within a specific document.
-    
-    Args:
-        doc_id (int): Document ID to retrieve term positions for
-        
-    Returns:
-        InvertedFileByDocIdResponse: Document ID and mapping of terms to their positions (empty dict if document not found)
-        
-    Raises:
-        HTTPException: 500 if internal server error occurs
-    """
     try:
         irdata: IRData = get_irdata()
-        
         terms = irdata.inverse_doc_by_id.get(doc_id, {})
-        
+        doc = next((d for d in irdata.documents if d.id == doc_id), None)
+        document_preview = (doc.content[:150] + "...") if doc and len(doc.content) > 100 else (doc.content if doc else "")
+        total_terms = len(terms)
+
+        term_postings = {}
+        if doc:
+            for term, positions in terms.items():
+                weight = doc.raw_tf.get(term, 0) 
+                term_postings[term] = {
+                    "positions": positions,
+                    "weight": weight
+                }
+
         return InvertedFileByDocIdResponse(
             doc_id=doc_id,
-            term_postings=terms
+            term_postings=term_postings,
+            document_preview=document_preview,
+            total_terms=total_terms
         )
-        
     except HTTPException:
         raise
     except Exception as e:
