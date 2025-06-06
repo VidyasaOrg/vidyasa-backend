@@ -23,7 +23,9 @@ async def get_posting_list_by_term(
             doc = next((d for d in irdata.documents if d.id == doc_id), None)
             if doc:
                 document_preview = (doc.content[:100] + "...") if len(doc.content) > 100 else doc.content
-                weight = doc.raw_tf.get(normalized_term, 0)  
+                raw_tf = doc.raw_tf.get(normalized_term, 0)
+                idf = irdata.idf.get(normalized_term, 0)
+                weight = raw_tf * idf  # Calculate TF-IDF weight
                 docs.append({
                     "doc_id": doc_id,
                     "document_preview": document_preview,
