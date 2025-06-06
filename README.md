@@ -50,13 +50,14 @@ unzip -o data/IRCollection.zip -d data/raw/ && \
 rm data/IRCollection.zip && \
 ```
 
-5. run scripts
+5. Run scripts
 
 preprocess the dataset
 ```powershell
 python scripts/preprocess.py
 ```
 
+6. Make sure to set your `.env` in the root directory (containing the gemini api key)
 ### Running the Application
 ```bash
 uvicorn app.main:app --reload
