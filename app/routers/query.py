@@ -63,16 +63,28 @@ async def search_single_query(request: QueryRequest):
             {"doc_id": 1, "doc_title": "Document 1", "similarity_score": 0.85},
             {"doc_id": 2, "doc_title": "Document 2", "similarity_score": 0.75}
         ],
+
         "expanded_ranking": [
             {"doc_id": 3, "doc_title": "Document 3", "similarity_score": 0.90},
             {"doc_id": 4, "doc_title": "Document 4", "similarity_score": 0.80}
         ],
+        
+        "expanded_ranking_exp": [
+            {"doc_id": 3, "doc_title": "Document 3", "similarity_score": 0.90},
+            {"doc_id": 4, "doc_title": "Document 4", "similarity_score": 0.80}
+        ],
+
         "original_query": "information retrieval",
         "original_map_score": 0.75,
         "original_query_weights": {"information": 0.5, "retrieval": 0.5},
+        
         "expanded_query": "information retrieval knowledge base",
         "expanded_map_score": 0.80,
-        "expanded_query_weights": {"information": 0.4, "retrieval": 0.4, "knowledge": 0.2}
+        "expanded_query_weights": {"information": 0.4, "retrieval": 0.4, "knowledge": 0.2},
+        
+        "expanded_query_exp": "information retrieval knowledge base",
+        "expanded_map_score_exp": 0.80,
+        "expanded_query_weights_exp": {"information": 0.4, "retrieval": 0.4, "knowledge": 0.2}
     }
     ```
     """
@@ -114,16 +126,28 @@ async def search_query_by_id(query_id: int):
             {"doc_id": 1, "doc_title": "Document 1", "similarity_score": 0.85},
             {"doc_id": 2, "doc_title": "Document 2", "similarity_score": 0.75}
         ],
+
         "expanded_ranking": [
             {"doc_id": 3, "doc_title": "Document 3", "similarity_score": 0.90},
             {"doc_id": 4, "doc_title": "Document 4", "similarity_score": 0.80}
         ],
+        
+        "expanded_ranking_exp": [
+            {"doc_id": 3, "doc_title": "Document 3", "similarity_score": 0.90},
+            {"doc_id": 4, "doc_title": "Document 4", "similarity_score": 0.80}
+        ],
+
         "original_query": "information retrieval",
         "original_map_score": 0.75,
         "original_query_weights": {"information": 0.5, "retrieval": 0.5},
+        
         "expanded_query": "information retrieval knowledge base",
         "expanded_map_score": 0.80,
-        "expanded_query_weights": {"information": 0.4, "retrieval": 0.4, "knowledge": 0.2}
+        "expanded_query_weights": {"information": 0.4, "retrieval": 0.4, "knowledge": 0.2},
+        
+        "expanded_query_exp": "information retrieval knowledge base",
+        "expanded_map_score_exp": 0.80,
+        "expanded_query_weights_exp": {"information": 0.4, "retrieval": 0.4, "knowledge": 0.2}
     }
     """
     try:

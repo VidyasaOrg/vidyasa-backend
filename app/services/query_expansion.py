@@ -34,8 +34,11 @@ def expand_query_kb(original_query: str, relevant_documents: list[str], expansio
 Use your knowledge to perform query expansion on the following sentence so that document retrieval becomes more effective and relevant.
 
 ⚠️ IMPORTANT:
-- Focus on expanding the original query by adding relevant context or details from the documents, not by completely replacing the original query.
-- If any part of the query is less relevant or not found in the documents, only then may it be replaced with something more accurate.
+- Expand the query by **adding** relevant context or terms **before or after** the original query.
+- ❌ DO NOT modify, rephrase, or merge the original query in any way.
+  - For example, if the original query is "music culture", you **must not** change it to "musical culture", "music and culture", or "music culturally".
+  - ✅ You may expand like "traditional music culture in Indonesia" or "influences of pop music culture".
+- The original query should appear **exactly as is** and remain **intact** in the expanded version.
 - Provide only 1 best expanded query.
 - DO NOT use boolean operators like AND, OR, or double quotation marks (" ").
 - Do not provide a list of synonyms or alternatives in one string.
@@ -43,7 +46,7 @@ Use your knowledge to perform query expansion on the following sentence so that 
 - Generate the query as a natural, explicit, and specific sentence, as if the user knows exactly what they are looking for.
 {max_terms}
 🔍 Goal:
-Make the query more focused, contextual, and aligned with the contents of relevant documents, without losing the original intent.
+Make the query more focused, contextual, and aligned with the contents of relevant documents, without losing or altering the original phrasing.
 
 Original query:
 {original_query}
@@ -62,21 +65,53 @@ Expanded result:
   "expanded-query": "BPJS Health claim regulations 2022"
 }}
 
-Original query: "BPJS regulations"
-Document: mentions "BPJS Health claim regulations 2022"
-Additional terms: 2
+Original query: "music culture"
+Documents mention "traditional music culture in Indonesia"
 Expanded result:
 {{
-  "expanded-query": "BPJS Health claim regulations"
+  "expanded-query": "traditional music culture in Indonesia"
+}}
+"""
+
+    try:
+        response = model.generate_content(prompt)
+        content = response.text.strip()
+        parsed = clean_json_response(content)
+        return parsed
+    except Exception as e:
+        raise RuntimeError(f"Failed to expand query: {e}")
+
+def expand_query_from_exp(original_query: str) -> str:
+    """
+    Use Gemini to perform query expansion based on the explanation of the original query.
+    
+    Args:
+        original_query (str): The original search query.
+        relevant_documents (List[str]): A list of relevant document texts.
+        
+    Returns:
+        dict: Contains the expanded query as {"expanded-query": "..."}
+    """
+    
+    prompt = f"""
+Your task is to expand the user's search query into a more informative and contextual version.
+
+Rules:
+- Use the original query as a base to elaborate on the intended meaning of the search.
+- Do not use boolean formats such as "OR".
+- Return only **one** expanded query.
+- The answer **MUST** be in JSON format, as shown in the example below:
+
+Example:
+Original query: "dedy mulyadi"
+Output:
+{{
+  "expanded-query": "dedi mulyadi, also known as kang dedi mulyadi and abbreviated as kdm, is a politician and activist from the Gerindra party who has served as the 15th governor of West Java since February 2025. Previously, he was the regent of Purwakarta from 2008 to 2018."
 }}
 
-Original query: "BPJS regulations"
-Document: mentions "BPJS Health claim regulations 2022"
-Additional terms: **not mentioned**
-Expanded result:
-{{
-  "expanded-query": "BPJS Health claim regulations in 2022"
-}}
+Now, use that format for the following query:
+
+Original query: "{original_query}"
 """
 
     try:

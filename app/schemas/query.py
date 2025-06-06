@@ -99,6 +99,7 @@ class QueryResponse(BaseModel):
     Attributes:
         original_ranking (List[DocumentSimilarityScore]): Ranking of documents for the original query.
         expanded_ranking (List[DocumentSimilarityScore]): Ranking of documents for the expanded query.
+        expanded_ranking (List[DocumentSimilarityScore]): Ranking of documents for the expanded query explanation.
 
         original_query (str): The original query text.
         original_map_score (float): Mean Average Precision score for the original query.
@@ -107,7 +108,11 @@ class QueryResponse(BaseModel):
         expanded_query (str): The expanded query text.
         expanded_map_score (float): Mean Average Precision score for the expanded query.
         expanded_query_weights (Dict[str, float]): Term weights for the expanded query.
-        
+
+        expanded_query_exp (str): The expanded query explanation text.
+        expanded_map_score_exp (float): Mean Average Precision score for the expanded query explanation.
+        expanded_query_weights_exp (Dict[str, float]): Term weights for the expanded query explanation.
+
     Example in json:
     ```
     {
@@ -130,6 +135,7 @@ class QueryResponse(BaseModel):
     """
     original_ranking: List[DocumentSimilarityScore]
     expanded_ranking: List[DocumentSimilarityScore]
+    expanded_ranking_exp: List[DocumentSimilarityScore]
     
     original_query: str
     original_map_score: float = 0.0
@@ -138,6 +144,10 @@ class QueryResponse(BaseModel):
     expanded_query: str
     expanded_map_score: float = 0.0
     expanded_query_weights: Dict[str, float]
+
+    expanded_query_exp: str
+    expanded_map_score_exp: float = 0.0
+    expanded_query_weights_exp: Dict[str, float]
 
 class QueryBatchResponse(BaseModel):
     """

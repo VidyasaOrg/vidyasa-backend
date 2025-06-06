@@ -7,7 +7,7 @@ from collections import defaultdict
 from app.models import IRData, Qrels, Document, Query
 from app.schemas import QueryRequest, QueryResponse, DocumentSimilarityScore, TermWeightingMethod, TermFrequencyMethod
 from app.utils import tokenize_and_preprocess
-from app.services.query_expansion import expand_query_kb
+from app.services.query_expansion import expand_query_kb, expand_query_from_exp
 
 class QueryService:
     """Service untuk pemrosesan query lengkap"""
@@ -22,14 +22,16 @@ class QueryService:
     def _filter_and_normalize_rankings(
         self,
         original_ranking: List[DocumentSimilarityScore],
-        expanded_ranking: List[DocumentSimilarityScore]
-    ) -> Tuple[List[DocumentSimilarityScore], List[DocumentSimilarityScore]]:
+        expanded_ranking: List[DocumentSimilarityScore],
+        expanded_ranking_exp: List[DocumentSimilarityScore]
+    ) -> Tuple[List[DocumentSimilarityScore], List[DocumentSimilarityScore], List[DocumentSimilarityScore]]:
         """
         Filter out documents with similarity score <= 0 and ensure consistent response length.
         
         Args:
             original_ranking: List of documents ranked by original query
             expanded_ranking: List of documents ranked by expanded query
+            expanded_ranking_exp: List of documents ranked by expanded query explanation
             
         Returns:
             Tuple containing filtered and length-normalized original and expanded rankings
@@ -37,14 +39,16 @@ class QueryService:
         # Filter out documents with similarity score <= 0
         original_filtered = [doc for doc in original_ranking if doc.similarity_score > 0]
         expanded_filtered = [doc for doc in expanded_ranking if doc.similarity_score > 0]
+        expanded_filtered_exp = [doc for doc in expanded_ranking_exp if doc.similarity_score > 0]
         
         # Get the maximum length between the two rankings
-        max_length = max(len(original_filtered), len(expanded_filtered))
+        max_length = max(len(original_filtered), len(expanded_filtered), len(expanded_filtered_exp))
         
         # Return top max_length documents for both rankings
         return (
             original_filtered[:max_length],
-            expanded_filtered[:max_length]
+            expanded_filtered[:max_length],
+            expanded_filtered_exp[:max_length]
         )
 
     def process_single_query(self, request: QueryRequest) -> QueryResponse:
@@ -138,9 +142,39 @@ class QueryService:
             cosine_normalization_document=request.cosine_normalization_document,
         )
 
+        ### QUERY EXPANSION EXPLANATION PROCESSING ###
+
+        # 10. Query Expansion
+        expanded_query_text_exp = self._expand_query_from_exp(request.query)
+
+        # 11. Preprocessing Expanded Query
+        expanded_tokens_exp = self._process_expanded_query(
+            expanded_query_text_exp,
+            preprocessed_tokens,
+            expansion_terms_count,
+            is_stemming,
+            is_stop_words_removal
+        )
+
+        # 12. Weights Per Term for Expanded Query
+        expanded_query_weights_exp = self.similarity_service.calculate_term_weights(
+            expanded_tokens_exp,
+            request.query_term_frequency_method,
+            request.query_term_weighting_method,
+            cosine_normalization_query=request.cosine_normalization_query
+        )
+
+        # 13. Document Ranking for Expanded Query
+        expanded_ranking_exp = self.similarity_service.rank_documents(
+            expanded_query_weights_exp,
+            request.document_term_frequency_method,
+            request.document_term_weighting_method,
+            cosine_normalization_document=request.cosine_normalization_document,
+        )        
+
         # Filter and normalize rankings
-        original_ranking, expanded_ranking = self._filter_and_normalize_rankings(
-            original_ranking, expanded_ranking
+        original_ranking, expanded_ranking, expanded_ranking_exp = self._filter_and_normalize_rankings(
+            original_ranking, expanded_ranking, expanded_ranking_exp
         )
 
         # Update ranking IDs for MAP calculation
@@ -150,9 +184,17 @@ class QueryService:
             relevant_docs
         ))
 
+        # Update ranking IDs for MAP calculation
+        expanded_ranking_ids_exp = [sim.doc_id for sim in expanded_ranking_exp]
+        expanded_map_exp = float(self.evaluation_service.calculate_map_score(
+            expanded_ranking_ids_exp,
+            relevant_docs
+        ))
+
         return QueryResponse(
             original_ranking=original_ranking,
             expanded_ranking=expanded_ranking,
+            expanded_ranking_exp=expanded_ranking_exp,
             
             original_query=raw_query,
             original_map_score=original_map_score,
@@ -160,7 +202,11 @@ class QueryService:
             
             expanded_query=expanded_query_text,
             expanded_map_score=expanded_map,
-            expanded_query_weights=expanded_query_weights
+            expanded_query_weights=expanded_query_weights,
+
+            expanded_query_exp=expanded_query_text_exp,
+            expanded_map_score_exp=expanded_map_exp,
+            expanded_query_weights_exp=expanded_query_weights_exp,
         )
     
     def _expand_query(self, original_query: str, top_doc_ids: List[int], expansion_terms_count) -> str:
@@ -175,6 +221,16 @@ class QueryService:
             
             # Expand query using AI
             expansion_result = expand_query_kb(original_query, relevant_doc_texts, expansion_terms_count)
+            return expansion_result.get("expanded-query", original_query)
+        except Exception as e:
+            print(f"Query expansion failed: {e}")
+            return original_query
+    
+    def _expand_query_from_exp(self, original_query: str) -> str:
+        """Expand query menggunakan top documents"""
+        try:
+            # Expand query using AI
+            expansion_result = expand_query_from_exp(original_query)
             return expansion_result.get("expanded-query", original_query)
         except Exception as e:
             print(f"Query expansion failed: {e}")
