@@ -100,10 +100,17 @@ Rules:
 - The answer **MUST** be in JSON format, as shown in the example below:
 
 Example:
-Original query: "dedy mulyadi"
+Original query: "What is the capital of Malaysia?"
 Output:
 {{
-  "expanded-query": "dedi mulyadi, also known as kang dedi mulyadi and abbreviated as kdm, is a politician and activist from the Gerindra party who has served as the 15th governor of West Java since February 2025. Previously, he was the regent of Purwakarta from 2008 to 2018."
+  "expanded-query": "Kuala Lumpur is the capital of Malaysia. Its modern skyline is dominated by the 451m-tall Petronas Twin Towers, a pair of glass-and-steel-clad skyscrapers with Islamic motifs. The towers also offer a public skybridge and observation deck."
+}}
+
+Example:
+Original query: "Sunspot"
+Output:
+{{
+  "expanded-query": "Sunspots are temporary spots on the Sun's surface that are darker than the surrounding area. They are one of the most recognizable Solar phenomena and despite the fact that they are mostly visible in the solar photosphere they usually affect the entire solar atmosphere."
 }}
 
 Now, use that format for the following query:
