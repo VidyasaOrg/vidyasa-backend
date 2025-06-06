@@ -84,6 +84,5 @@ class EvaluationService:
             return -1.0
 
         temp = self.calculate_average_precision(ranking, relevant_docs)
-        print(f"MAP Score: {temp}")  # Debugging output
         return temp
 

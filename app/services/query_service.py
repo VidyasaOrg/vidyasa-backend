@@ -100,14 +100,12 @@ class QueryService:
         original_ranking_ids = [sim.doc_id for sim in original_ranking]
         relevant_docs = None
 
-        if is_queries_from_cisi:
-            if query_id is not None:
-                relevant_docs = set(self.qrels.get_relevant_docs(query_id))
+        if query_id is not None:
+            relevant_docs = set(self.qrels.get_relevant_docs(query_id))
 
         original_map_score = self.evaluation_service.calculate_map_score(
             original_ranking_ids,
             relevant_docs,
-            is_queries_from_cisi
         )
 
         ### QUERY EXPANSION PROCESSING ###
@@ -149,18 +147,9 @@ class QueryService:
         expanded_ranking_ids = [sim.doc_id for sim in expanded_ranking]
         expanded_map = float(self.evaluation_service.calculate_map_score(
             expanded_ranking_ids,
-            relevant_docs,
-            is_queries_from_cisi
+            relevant_docs
         ))
 
-        print("expanded_map", expanded_map)
-        print("query_term_frequency_method", query_term_frequency_method)
-        print("query_term_weighting_method", query_term_weighting_method)
-        print("document_term_frequency_method", document_term_frequency_method)
-        print("document_term_weighting_method", document_term_weighting_method)
-        print("cosine_normalization_query", cosine_normalization_query)
-        print("cosine_normalization_document", cosine_normalization_document)
-        
         return QueryResponse(
             original_ranking=original_ranking,
             expanded_ranking=expanded_ranking,
@@ -378,9 +367,5 @@ class EvaluationService:
                 relevant_retrieved += 1
                 precision_at_i = relevant_retrieved / (i + 1)
                 precision_sum += precision_at_i
-
-        print("precision_sum", precision_sum)
-        print("relevant_docs", len(relevant_docs))
-        print("map", precision_sum / len(relevant_docs))
 
         return float(precision_sum / len(relevant_docs)) if relevant_docs else 0.0
