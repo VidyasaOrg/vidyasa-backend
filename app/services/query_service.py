@@ -100,8 +100,9 @@ class QueryService:
         original_ranking_ids = [sim.doc_id for sim in original_ranking]
         relevant_docs = None
 
-        if query_id is not None:
-            relevant_docs = set(self.qrels.get_relevant_docs(query_id))
+        if is_queries_from_cisi:
+            if query_id is not None:
+                relevant_docs = set(self.qrels.get_relevant_docs(query_id))
 
         original_map_score = self.evaluation_service.calculate_map_score(
             original_ranking_ids,
