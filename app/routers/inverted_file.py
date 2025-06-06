@@ -16,8 +16,12 @@ async def get_posting_list_by_term(
         if not normalized_term:
             raise HTTPException(status_code=400, detail="Term cannot be empty or whitespace only")
         
-        doc_ids = irdata.inverse_doc_by_term.get(normalized_term, {}).get('doc_ids', [])
-        total_occurrences = irdata.inverse_doc_by_term.get(normalized_term, {}).get('total_occurrences', 0)
+        term_data = irdata.inverse_doc_by_term.get(normalized_term)
+        if not term_data:
+            raise HTTPException(status_code=404, detail=f"Term '{normalized_term}' not found in any document")
+            
+        doc_ids = term_data.get('doc_ids', [])
+        total_occurrences = term_data.get('total_occurrences', 0)
         docs = []
         for doc_id in doc_ids:
             doc = next((d for d in irdata.documents if d.id == doc_id), None)
@@ -52,12 +56,18 @@ async def get_document_terms_and_positions(
 ):
     try:
         irdata: IRData = get_irdata()
-        terms = irdata.inverse_doc_by_id.get(doc_id, {}).get('terms', {})
+        doc_data = irdata.inverse_doc_by_id.get(doc_id)
+        if not doc_data:
+            raise HTTPException(status_code=404, detail=f"Document with ID {doc_id} not found")
+            
+        terms = doc_data.get('terms', {})
         doc = next((d for d in irdata.documents if d.id == doc_id), None)
-        document_preview = (doc.content[:150] + "...") if doc and len(doc.content) > 100 else (doc.content if doc else "")
+        if not doc:
+            raise HTTPException(status_code=404, detail=f"Document with ID {doc_id} not found in documents collection")
+            
+        document_preview = (doc.content[:150] + "...") if len(doc.content) > 100 else doc.content
         
         # Get document metadata
-        doc_data = irdata.inverse_doc_by_id.get(doc_id, {})
         document_length = doc_data.get('document_length', 0)
         unique_terms = doc_data.get('unique_terms', 0)
 
