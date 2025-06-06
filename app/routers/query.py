@@ -93,7 +93,7 @@ async def search_single_query(request: QueryRequest):
 @router.post("/exp/", response_model=QueryResponse)
 async def search_single_query(request: QueryRequest):
     """
-    Search for a single query and return the results with both original and expanded query rankings.
+    Search for a single query and return the results with both original and expanded query rankings (the query is expanded using LLM's explanation).
     
     Args:
         request (QueryRequest): The search query request containing the query text and options.

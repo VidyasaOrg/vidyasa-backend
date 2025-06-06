@@ -213,6 +213,7 @@ async def search_batch_queries(
     Process a batch of queries from a file and return the results.
     The file should contain query IDs, one per line.
     Each query will be processed to retrieve original and expanded rankings, MAP scores, and term weights.
+    (the query is expanded using LLM's explanation).
     
     Args:
         file: Text file containing query IDs (one per line)
@@ -306,6 +307,7 @@ async def search_batch_queries_json(request: QueryBatchRequest):
     """
     Process a batch of queries provided in JSON format and return the results.
     Each query will be processed to retrieve original and expanded rankings, MAP scores, and term weights.
+    (the query is expanded using LLM's explanation).
     
     Args:
         request (QueryBatchRequest): The batch query request containing queries and processing options
