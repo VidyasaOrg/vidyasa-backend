@@ -44,7 +44,7 @@ Use your knowledge to perform query expansion on the following sentence so that 
 - Do not provide a list of synonyms or alternatives in one string.
 - Avoid formats like: "<option 1>" OR "<option 2>".
 - Generate the query as a natural, explicit, and specific sentence, as if the user knows exactly what they are looking for.
-{max_terms}
+
 🔍 Goal:
 Make the query more focused, contextual, and aligned with the contents of relevant documents, without losing or altering the original phrasing.
 
@@ -58,18 +58,15 @@ Provide the result in JSON format:
 
 Example:
 Original query: "BPJS regulations"
-Document: mentions "BPJS Health claim regulations 2022"
-Additional terms: 3
 Expanded result:
 {{
   "expanded-query": "BPJS Health claim regulations 2022"
 }}
 
 Original query: "music culture"
-Documents mention "traditional music culture in Indonesia"
 Expanded result:
 {{
-  "expanded-query": "traditional music culture in Indonesia"
+  "expanded-query": "Music culture and heritage"
 }}
 """
 
