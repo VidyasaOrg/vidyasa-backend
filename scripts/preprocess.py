@@ -40,6 +40,9 @@ def ensure_nltk_data():
 # Call this at module import
 ensure_nltk_data()
 
+# Get stopwords once at module level for efficiency
+STOPWORDS = set(nltk.corpus.stopwords.words('english'))
+
 # # Config
 # ## Editable
 # *directory names*
@@ -258,7 +261,7 @@ def _inverted_index_by_term(documents: list[tuple]) -> dict[str, list[int]]:
 
 def _inverted_index_by_doc(documents: list[tuple]) -> dict[int, dict[str, list[int]]]:
     """
-    Build a positional inverted index for each document.
+    Build a positional inverted index for each document, excluding stopwords.
 
     Args:
         documents (list[tuple]): List of (doc id, tokenized documents), each as a tuple of (doc_id, terms).
@@ -266,10 +269,11 @@ def _inverted_index_by_doc(documents: list[tuple]) -> dict[int, dict[str, list[i
     Returns:
         dict[int, dict[str, list[int]]]: Dictionary mapping document IDs (int) to a dictionary,
             where each key is a term (str) and the value is a list of positions (int) where the term appears.
+            Stopwords are excluded from the index.
 
     Example:
         {
-            0: {"information": [0, 4], "retrieval": [1]},
+            0: {"information": [0, 4], "retrieval": [1]},  # "the", "is", etc. are excluded
             1: {"information": [3]},
             2: {"retrieval": [5, 7]}
         }
@@ -278,7 +282,8 @@ def _inverted_index_by_doc(documents: list[tuple]) -> dict[int, dict[str, list[i
     inverted_index = defaultdict(lambda: defaultdict(list))
     for doc_id, doc in documents:
         for position, term in enumerate(doc):
-            inverted_index[doc_id][term].append(position)
+            if term not in STOPWORDS:  # Only index non-stopwords
+                inverted_index[doc_id][term].append(position)
     # Convert defaultdicts to dicts for output
     return {doc_id: dict(term_dict) for doc_id, term_dict in inverted_index.items()}
     

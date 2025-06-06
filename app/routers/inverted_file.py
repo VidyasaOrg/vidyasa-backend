@@ -29,6 +29,9 @@ async def get_posting_list_by_term(
                     "weight": weight
                 })
 
+        # Sort docs by weight in descending order
+        docs.sort(key=lambda x: x['weight'], reverse=True)
+
         return InvertedFileByTermResponse(term=normalized_term, docs=docs)
     except HTTPException:
         raise
@@ -49,11 +52,16 @@ async def get_document_terms_and_positions(
         term_postings = {}
         if doc:
             for term, positions in terms.items():
-                weight = doc.raw_tf.get(term, 0) 
+                raw_tf = doc.raw_tf.get(term, 0)
+                idf = irdata.idf.get(term, 0)
+                weight = raw_tf * idf
                 term_postings[term] = {
                     "positions": positions,
                     "weight": weight
                 }
+
+        # Sort term_postings by weight in descending order
+        term_postings = dict(sorted(term_postings.items(), key=lambda item: item[1]['weight'], reverse=True))
 
         return InvertedFileByDocIdResponse(
             doc_id=doc_id,
