@@ -238,28 +238,40 @@ def _calculate_idf(documents: list[tuple]) -> dict[str, float]:
         idf[term] = math.log2(total_documents / freq) if freq else 0.0
     return idf
 
-def _inverted_index_by_term(documents: list[tuple]) -> dict[str, list[int]]:
+def _inverted_index_by_term(documents: list[tuple]) -> dict[str, dict]:
     """
-    Build an inverted index mapping each term to the list of document IDs containing it.
+    Build an inverted index mapping each term to document IDs and total occurrences.
 
     Args:
         documents (list[tuple]): List of (doc id, tokenized documents), each as a tuple of (doc_id, terms).
 
     Returns:
-        dict[str, list[int]]: Dictionary where each key is a term and the value is a list of document IDs (int) in which the term appears.
+        dict[str, dict]: Dictionary where each key is a term and the value is a dictionary containing:
+            - doc_ids: list of document IDs (int) in which the term appears
+            - total_occurrences: total number of times the term appears across all documents
 
     Example:
-        >>> _inverted_index_by_term([(1, ["apple", "banana"]), (2, ["banana", "carrot"])])
-        {'apple': [1], 'banana': [1, 2], 'carrot': [2]}
+        >>> _inverted_index_by_term([(1, ["apple", "banana", "apple"]), (2, ["banana", "carrot"])])
+        {
+            'apple': {'doc_ids': [1], 'total_occurrences': 2},
+            'banana': {'doc_ids': [1, 2], 'total_occurrences': 2},
+            'carrot': {'doc_ids': [2], 'total_occurrences': 1}
+        }
     """
-    inverted_index = defaultdict(list)
+    inverted_index = defaultdict(lambda: {'doc_ids': [], 'total_occurrences': 0})
+    
     for doc_id, terms in documents:
-        # Use a set to ensure each doc_id appears only once per term
+        # Track unique doc_ids
         for term in set(terms):
-            inverted_index[term].append(doc_id)
+            inverted_index[term]['doc_ids'].append(doc_id)
+        
+        # Count total occurrences
+        for term in terms:
+            inverted_index[term]['total_occurrences'] += 1
+            
     return dict(inverted_index)
 
-def _inverted_index_by_doc(documents: list[tuple]) -> dict[int, dict[str, list[int]]]:
+def _inverted_index_by_doc(documents: list[tuple]) -> dict[int, dict]:
     """
     Build a positional inverted index for each document, excluding stopwords.
 
@@ -267,25 +279,49 @@ def _inverted_index_by_doc(documents: list[tuple]) -> dict[int, dict[str, list[i
         documents (list[tuple]): List of (doc id, tokenized documents), each as a tuple of (doc_id, terms).
 
     Returns:
-        dict[int, dict[str, list[int]]]: Dictionary mapping document IDs (int) to a dictionary,
-            where each key is a term (str) and the value is a list of positions (int) where the term appears.
-            Stopwords are excluded from the index.
+        dict[int, dict]: Dictionary mapping document IDs (int) to a dictionary containing:
+            - terms: Dictionary mapping terms to their positions
+            - document_length: Total length of document (number of terms including stopwords)
+            - unique_terms: Number of unique terms (excluding stopwords)
 
     Example:
         {
-            0: {"information": [0, 4], "retrieval": [1]},  # "the", "is", etc. are excluded
-            1: {"information": [3]},
-            2: {"retrieval": [5, 7]}
+            0: {
+                "terms": {"information": [0, 4], "retrieval": [1]},  # "the", "is", etc. are excluded
+                "document_length": 50,  # Total terms in document
+                "unique_terms": 2  # Number of unique terms (excluding stopwords)
+            },
+            1: {
+                "terms": {"information": [3]},
+                "document_length": 30,
+                "unique_terms": 1
+            }
         }
     """
     # For each document, map each term to its positions within the document
-    inverted_index = defaultdict(lambda: defaultdict(list))
+    inverted_index = defaultdict(lambda: {"terms": defaultdict(list), "document_length": 0, "unique_terms": 0})
+    
     for doc_id, doc in documents:
+        # Store document length (including stopwords)
+        inverted_index[doc_id]["document_length"] = len(doc)
+        
+        # Track positions for non-stopwords
         for position, term in enumerate(doc):
-            if term not in STOPWORDS:  # Only index non-stopwords
-                inverted_index[doc_id][term].append(position)
-    # Convert defaultdicts to dicts for output
-    return {doc_id: dict(term_dict) for doc_id, term_dict in inverted_index.items()}
+            if term not in STOPWORDS:
+                inverted_index[doc_id]["terms"][term].append(position)
+        
+        # Count unique terms (excluding stopwords)
+        inverted_index[doc_id]["unique_terms"] = len(inverted_index[doc_id]["terms"])
+    
+    # Convert defaultdicts to regular dicts
+    return {
+        doc_id: {
+            "terms": dict(doc_data["terms"]),
+            "document_length": doc_data["document_length"],
+            "unique_terms": doc_data["unique_terms"]
+        }
+        for doc_id, doc_data in inverted_index.items()
+    }
     
 
 def parse_cisi_all(file_path=os.path.join(DATASET_DIR, CISI_ALL_FILENAME)):

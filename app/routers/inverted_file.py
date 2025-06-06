@@ -16,7 +16,8 @@ async def get_posting_list_by_term(
         if not normalized_term:
             raise HTTPException(status_code=400, detail="Term cannot be empty or whitespace only")
         
-        doc_ids = irdata.inverse_doc_by_term.get(normalized_term, [])
+        doc_ids = irdata.inverse_doc_by_term.get(normalized_term, {}).get('doc_ids', [])
+        total_occurrences = irdata.inverse_doc_by_term.get(normalized_term, {}).get('total_occurrences', 0)
         docs = []
         for doc_id in doc_ids:
             doc = next((d for d in irdata.documents if d.id == doc_id), None)
@@ -32,7 +33,12 @@ async def get_posting_list_by_term(
         # Sort docs by weight in descending order
         docs.sort(key=lambda x: x['weight'], reverse=True)
 
-        return InvertedFileByTermResponse(term=normalized_term, docs=docs)
+        return InvertedFileByTermResponse(
+            term=normalized_term, 
+            total_occurrences=total_occurrences,
+            total_documents=len(docs),
+            docs=docs
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -44,17 +50,19 @@ async def get_document_terms_and_positions(
 ):
     try:
         irdata: IRData = get_irdata()
-        terms = irdata.inverse_doc_by_id.get(doc_id, {})
+        terms = irdata.inverse_doc_by_id.get(doc_id, {}).get('terms', {})
         doc = next((d for d in irdata.documents if d.id == doc_id), None)
         document_preview = (doc.content[:150] + "...") if doc and len(doc.content) > 100 else (doc.content if doc else "")
-        total_terms = len(terms)
+        
+        # Get document metadata
+        doc_data = irdata.inverse_doc_by_id.get(doc_id, {})
+        document_length = doc_data.get('document_length', 0)
+        unique_terms = doc_data.get('unique_terms', 0)
 
         term_postings = {}
         if doc:
             for term, positions in terms.items():
-                raw_tf = doc.raw_tf.get(term, 0)
-                idf = irdata.idf.get(term, 0)
-                weight = raw_tf * idf
+                weight = doc.raw_tf.get(term, 0) * irdata.idf.get(term, 0)  # TF-IDF weight
                 term_postings[term] = {
                     "positions": positions,
                     "weight": weight
@@ -67,7 +75,8 @@ async def get_document_terms_and_positions(
             doc_id=doc_id,
             term_postings=term_postings,
             document_preview=document_preview,
-            total_terms=total_terms
+            document_length=document_length,
+            unique_terms=unique_terms
         )
     except HTTPException:
         raise
